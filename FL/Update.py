@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from ..config import for_FL as f
+from config import for_FL as f
 
 # random.seed(f.seed)
 

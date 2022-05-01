@@ -1,4 +1,4 @@
-from ..config import for_FL as f
+from config import for_FL as f
 from .Update import Local_process, LocalUpdate_poison
 
 class Attackers():

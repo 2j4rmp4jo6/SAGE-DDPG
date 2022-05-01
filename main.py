@@ -10,6 +10,7 @@ from normalized_env import NormalizedEnv
 from evaluator import Evaluator
 from ddpg import DDPG
 from util import *
+from FL_env import FL_env
 
 gym.undo_logger_setup()
 
@@ -122,7 +123,7 @@ if __name__ == "__main__":
     if args.resume == 'default':
         args.resume = 'output/{}-run0'.format(args.env)
 
-    env = NormalizedEnv(gym.make(args.env))
+    env = FL_env()
 
     if args.seed > 0:
         np.random.seed(args.seed)

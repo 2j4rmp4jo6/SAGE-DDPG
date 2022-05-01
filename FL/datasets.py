@@ -1,6 +1,6 @@
 from torchvision import datasets, transforms
-from ..config import for_FL as f
-from ..utils import sampling as s
+from config import for_FL as f
+from utils import sampling as s
 
 
 class Dataset():

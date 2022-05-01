@@ -1,5 +1,5 @@
 from multiprocessing.connection import Client
-from ..config import for_FL as f
+from config import for_FL as f
 import numpy as np
 from .clients import Client as Clients
 import copy
@@ -89,12 +89,12 @@ class Shuffle():
                     groups.intermediate = [i for i in range(2,client_num + 2)]
         return clients
     
-    def execution_group(self, clients, groups, round, threshold):
+    def execution_group(self, clients, groups, round, threshold_bad, threshold_good):
         for client in clients:
             if client.id != 0 and client.id != 1:
-                if client.acc_per_label_min > threshold[1]:
+                if client.acc_per_label_min > threshold_good:
                     self.shuffle_in_good.append(client.id)
-                elif client.acc_per_label_min < threshold[0]:
+                elif client.acc_per_label_min < threshold_bad:
                     self.shuffle_in_bad.append(client.id)
                 else:
                     self.shuffle_in_intermediate.append(client.id)

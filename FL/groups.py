@@ -1,4 +1,4 @@
-from ..config import for_FL as f
+from config import for_FL as f
 import numpy as np
 
 # np.random.seed(f.seed)
@@ -36,7 +36,7 @@ class Groups():
         self.acc_worst_intermediate = 0
         self.acc_avg_intermediate = 0
 
-    def reset(self, epoch, slice_num ):
+    def reset(self, epoch):
         self.acc_rec_good = []
         self.acc_rec_bad = []
         self.acc_worst_good = 0

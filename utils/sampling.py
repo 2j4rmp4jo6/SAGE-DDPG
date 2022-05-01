@@ -4,7 +4,7 @@ https://github.com/Suyi32/Learning-to-Detect-Malicious-Clients-for-Robust-FL/blo
 '''
 
 import numpy as np
-from ..config import for_FL as f
+from config import for_FL as f
 
 
 def my_noniid(dataset):

@@ -1,4 +1,4 @@
-from ..config import for_FL as f
+from config import for_FL as f
 import numpy as np
 import copy
 from .Update import LocalUpdate_poison

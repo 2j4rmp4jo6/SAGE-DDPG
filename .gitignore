@@ -89,3 +89,24 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# sage
+# gitignore
+
+*.pt
+
+/data
+
+# record file
+LessAction
+record/
+
+# cache
+log.txt
+__pycache__/
+config/__pycache__/
+FL/__pycache__/
+RL/__pycache__/
+utils/__pycache__/
+
+*.pyc
