@@ -28,6 +28,7 @@ def sample_batch_indexes(low, high, size):
         # can occur multiple times. This is not good and should be avoided by picking a
         # large enough warm-up phase.
         warnings.warn('Not enough entries to sample without replacement. Consider increasing your warm-up phase to avoid oversampling!')
+        print("===", low, high)
         batch_idxs = np.random.random_integers(low, high - 1, size=size)
     assert len(batch_idxs) == size
     return batch_idxs

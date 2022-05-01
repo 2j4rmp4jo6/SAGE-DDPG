@@ -14,7 +14,7 @@ class Evaluator(object):
         self.save_path = save_path
         self.results = np.array([]).reshape(num_episodes,0)
 
-    def __call__(self, env, policy, debug=False, visualize=False, save=True):
+    def __call__(self, env, policy, epoch, debug=False, visualize=False, save=True):
 
         self.is_training = False
         observation = None
@@ -23,7 +23,7 @@ class Evaluator(object):
         for episode in range(self.num_episodes):
 
             # reset at the start of episode
-            observation = env.reset()
+            observation = env.reset(epoch)
             episode_steps = 0
             episode_reward = 0.
                 
@@ -35,7 +35,7 @@ class Evaluator(object):
                 # basic operation, action ,reward, blablabla ...
                 action = policy(observation)
 
-                observation, reward, done, info = env.step(action)
+                observation, reward, done, info = env.step(episode_steps,action)
                 if self.max_episode_length and episode_steps >= self.max_episode_length -1:
                     done = True
                 

@@ -10,6 +10,7 @@ from memory import SequentialMemory
 from random_process import OrnsteinUhlenbeckProcess
 from util import *
 
+import config.for_FL as FL
 # from ipdb import set_trace as debug
 
 criterion = nn.MSELoss()
@@ -117,16 +118,18 @@ class DDPG(object):
             self.s_t = s_t1
 
     def random_action(self):
-        action = np.random.uniform(-1.,1.,self.nb_actions)
+        action = np.random.uniform(0, 1., 2)
+        action = np.append(action,[np.random.randint(low=0,high=FL.total_users)])
         self.a_t = action
         return action
 
     def select_action(self, s_t, decay_epsilon=True):
         action = to_numpy(
-            self.actor(to_tensor(np.array([s_t])))
-        ).squeeze(0)
+            self.actor(to_tensor(np.array(s_t)))
+        )#.squeeze(0)
         action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
-        action = np.clip(action, -1., 1.)
+
+        action = np.append(np.clip(action[:2], 0., 1.),np.clip(action[2:3], 1, FL.total_users))
 
         if decay_epsilon:
             self.epsilon -= self.depsilon
@@ -164,3 +167,14 @@ class DDPG(object):
         torch.manual_seed(s)
         if USE_CUDA:
             torch.cuda.manual_seed(s)
+
+    def calc_reward(self, env, action):
+        user_point = 0.
+        for client in env.clients:
+            if client.id != 0 and client.id != 1:
+                if client.acc_per_label_min > action[1]:
+                    user_point += len(client.local_users) * (1 - 0.4) / (1 - FL.attack_ratio)
+                elif client.acc_per_label_min < action[0]:
+                    user_point += len(client.local_users) * 0.4 / FL.attack_ratio
+        user_point = user_point * (0.9**action[2])
+        return user_point

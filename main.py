@@ -14,7 +14,7 @@ from FL_env import FL_env
 
 gym.undo_logger_setup()
 
-def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_episode_length=None, debug=False):
+def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_episode_length=21, debug=False):
 
     agent.is_training = True
     step = episode = episode_steps = 0
@@ -23,7 +23,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
     while step < num_iterations:
         # reset if it is the start of episode
         if observation is None:
-            observation = deepcopy(env.reset())
+            observation = deepcopy(env.reset(episode_steps))
             agent.reset(observation)
 
         # agent pick action ...
@@ -31,9 +31,13 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             action = agent.random_action()
         else:
             action = agent.select_action(observation)
-        
+
         # env response with next_observation, reward, terminate_info
-        observation2, reward, done, info = env.step(action)
+        observation2, reward, done, info = env.step(episode_steps, action)
+
+        observation2 = env.get_observation(episode_steps, action)
+        reward = agent.calc_reward(env, action)
+        
         observation2 = deepcopy(observation2)
         if max_episode_length and episode_steps >= max_episode_length -1:
             done = True
@@ -46,7 +50,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
         # [optional] evaluate
         if evaluate is not None and validate_steps > 0 and step % validate_steps == 0:
             policy = lambda x: agent.select_action(x, decay_epsilon=False)
-            validate_reward = evaluate(env, policy, debug=False, visualize=False)
+            validate_reward = evaluate(env, policy, episode_steps, debug=False, visualize=False)
             if debug: prYellow('[Evaluate] Step_{:07d}: mean_reward:{}'.format(step, validate_reward))
 
         # [optional] save intermideate model
@@ -132,6 +136,8 @@ if __name__ == "__main__":
     nb_states = env.observation_space.shape[0]
     nb_actions = env.action_space.shape[0]
 
+    if args.debug: prPurple("action_space:{}".format(nb_actions))
+    if args.debug: prPurple("observation_space:{}".format(nb_states))
 
     agent = DDPG(nb_states, nb_actions, args)
     evaluate = Evaluator(args.validate_episodes, 
