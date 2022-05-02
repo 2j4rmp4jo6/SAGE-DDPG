@@ -131,7 +131,7 @@ class LocalUpdate_poison(object):
                 net.zero_grad()
 
                 # 此圖為哪種圖的各機率
-                log_probs = net(images.double())
+                log_probs = net(images.float())
                 
                 loss = self.loss_func(log_probs, labels)
                 loss.backward()

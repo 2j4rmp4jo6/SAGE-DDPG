@@ -11,6 +11,8 @@ import copy
 import numpy as np
 import time
 
+import gym
+
 class FL_env():
     def __init__(self):
         f.device = torch.device('cuda:{}'.format(f.gpu) if torch.cuda.is_available() and f.gpu != -1 else 'cpu')
@@ -70,7 +72,19 @@ class FL_env():
         self.attacker_in_good = []
         self.total_attacker = []
 
-        # state, action space 不確定需不需要加在這邊，有需要再補
+        # state =  [FL_epoch, 三個 group 人數, intermediate group subset 數, 
+        #           good group 各 label accuracy, intermediate group 各 label accuracy, bad group 各 label accuracy]
+        lower_bound = [0, 0, 0, 0, 0]
+        lower_bound.extend([0.0]*10*3)
+        upper_bound = [f.epochs, f.total_users, f.total_users, f.total_users, f.num_clients]
+        upper_bound.extend([1.0]*10*3)
+        self.observation_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound), dtype=np.float32)
+
+        # action = [0.~0.5, 0.51~1, 1~FL.total_users]
+        lower_bound = [0.0, 0.0, -1.]
+        upper_bound = [1.0, 1.0, 1.]
+        self.action_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound),dtype=np.float32)
+
     
     def reset(self):
         # restart = 1 表示各 user model 收斂，一輪 RL 結束
@@ -112,8 +126,21 @@ class FL_env():
             # client[0], client[1] 負責放 good, bad group 的 user
             if(client.id != 0 and client.id != 1):
                 self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
+        
+        observation = [self.fl_epoch, 0, f.total_users, 0, f.num_clients ]
+        observation.extend([0.0]*10*3)
+        return observation
     
     def step(self, round, action):
+
+        # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
+        for client in self.my_clients:
+            client.reset(self.fl_epoch)
+        # 重置 groups 中的各 client 的 acc 
+        self.my_groups.reset(self.fl_epoch)
+        # 重置各 groups 中的 clients
+        self.my_shuffle.reset()
+        
         # 開始跑方法
         start_time = time.time()
 
@@ -164,40 +191,34 @@ class FL_env():
             state.extend(intermediate)
             state.extend(bad)
 
-            # 原本 slicing 的部分
-            # state 的定義是 [中間 group 各 label 平均 acc, 中間 group  client 數量, 中間 group user 數量]
-            if len(self.my_groups.acc_rec_intermediate) != 0:
-                slicing_state = self.my_groups.acc_per_label_intermediate
-            else:
-                slicing_state = [0.0]*10
-            intermediate_users = 0
-            for c in self.my_groups.intermediate:
-                intermediate_users += len(self.my_clients[c].local_users)
-            state.extend(slicing_state)
-            # 前面有把 slicing 的 action 放進去了，所以這邊先拿掉
-            # state.extend([action[2], intermediate_users])
-            state.extend(intermediate_users)
+            # # 原本 slicing 的部分
+            # # state 的定義是 [中間 group 各 label 平均 acc, 中間 group  client 數量, 中間 group user 數量]
+            # if len(self.my_groups.acc_rec_intermediate) != 0:
+            #     slicing_state = self.my_groups.acc_per_label_intermediate
+            # else:
+            #     slicing_state = [0.0]*10
+            # intermediate_users = 0
+            # for c in self.my_groups.intermediate:
+            #     intermediate_users += len(self.my_clients[c].local_users)
+            # state.extend(slicing_state)
+            # # 前面有把 slicing 的 action 放進去了，所以這邊先拿掉
+            # # state.extend([action[2], intermediate_users])
+            # state.extend(intermediate_users)
 
             observation = state
 
-            return observation, reward, self.restart
+            return observation, reward, True
         
         print(self.my_attackers.attacker_num, self.my_attackers.attacker_count)
 
         # 更新 client、跑 shuffle
         # client ID重新計算
         Client.ID = 2
-        self.my_clients = self.my_shuffle.execution_client(self.my_clients, self.my_groups, round, action[2])
+        self.my_clients = self.my_shuffle.execution_client(self.my_clients, self.my_groups, round, int(action[2]))
         print("")
         print("inter client num after shuffle", len(self.my_groups.intermediate))
 
-        # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
-        for client in self.my_clients:
-            client.reset(self.fl_epoch)
-        # 重置 groups 中的各 client 的 acc 
-        self.my_groups.reset(self.fl_epoch)
-        # 重置各 groups 中的 clients
-        self.my_shuffle.reset()
+        
 
         # 各 client 跑 local epoch 的時間
         # 因為實際上跑的時候是 sequence 而非 parallel
@@ -272,20 +293,42 @@ class FL_env():
         state.extend(intermediate)
         state.extend(bad)
 
-        # 原本 slicing 的部分
-        # state的定義是 [中間 group 各 label 平均 acc, 中間 group  client 數量, 中間 group user 數量]
-        if len(self.my_groups.acc_rec_intermediate) != 0:
-            slicing_state = self.my_groups.acc_per_label_intermediate
-        else:
-            slicing_state = [0.0]*10
-        intermediate_users = 0
-        for c in self.my_groups.intermediate:
-            intermediate_users += len(self.my_clients[c].local_users)
-        state.extend(slicing_state)
-        # 前面有把 slicing 的 action 放進去了，所以這邊先拿掉
-        # state.extend([action[2], intermediate_users])
-        state.extend(intermediate_users)
+        # # 原本 slicing 的部分
+        # # state的定義是 [中間 group 各 label 平均 acc, 中間 group  client 數量, 中間 group user 數量]
+        # if len(self.my_groups.acc_rec_intermediate) != 0:
+        #     slicing_state = self.my_groups.acc_per_label_intermediate
+        # else:
+        #     slicing_state = [0.0]*10
+        # intermediate_users = 0
+        # for c in self.my_groups.intermediate:
+        #     intermediate_users += len(self.my_clients[c].local_users)
+        # state.extend(slicing_state)
+        # # 前面有把 slicing 的 action 放進去了，所以這邊先拿掉
+        # # state.extend([action[2], intermediate_users])
+        # state.extend(intermediate_users)
 
         observation = state
 
         return observation, reward, self.restart
+
+    def get_observation(self, epoch, action):
+        # [FL_epoch, 三個 group 人數, intermediate group subset 數, 
+        #  good group 各 label accuracy, intermediate group 各 label accuracy, bad group 各 label accuracy]
+        if len(self.my_groups.acc_per_label_good) != 0:
+            good = self.my_groups.acc_per_label_good
+        else:
+            good = [0.0] * 10
+        if len(self.my_groups.acc_per_label_bad) != 0:
+            bad = self.my_groups.acc_per_label_bad
+        else:
+            bad = [0.0] * 10
+        if len(self.my_groups.acc_per_label_intermediate) != 0:
+            intermediate = self.my_groups.acc_per_label_intermediate
+        else:
+            intermediate = [0.0] * 10
+        observation=[epoch, len(self.my_groups.good), len(self.my_groups.intermediate), len(self.my_groups.bad), action[2]]
+        observation.extend(good)
+        observation.extend(intermediate)
+        observation.extend(bad)
+        
+        return observation

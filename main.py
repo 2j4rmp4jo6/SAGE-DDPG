@@ -1,5 +1,6 @@
 #!/usr/bin/env python3 
 
+import stringprep
 import numpy as np
 import argparse
 from copy import deepcopy
@@ -23,20 +24,24 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
     while step < num_iterations:
         # reset if it is the start of episode
         if observation is None:
-            observation = deepcopy(env.reset(episode_steps))
+            print("Episode:", episode)
+            observation = deepcopy(env.reset())
             agent.reset(observation)
-
+        print("episode_steps: ", episode_steps)
         # agent pick action ...
         if step <= args.warmup:
             action = agent.random_action()
         else:
             action = agent.select_action(observation)
-
+        if episode_steps<3:
+            action[0] = 0.
+        print("observation: ", observation)
+        print("action: ", action)
         # env response with next_observation, reward, terminate_info
-        observation2, reward, done, info = env.step(episode_steps, action)
+        observation2, reward, done = env.step(episode_steps, action)
+        print("reward: ", reward)
 
         observation2 = env.get_observation(episode_steps, action)
-        reward = agent.calc_reward(env, action)
         
         observation2 = deepcopy(observation2)
         if max_episode_length and episode_steps >= max_episode_length -1:
@@ -140,7 +145,7 @@ if __name__ == "__main__":
     if args.debug: prPurple("observation_space:{}".format(nb_states))
 
     agent = DDPG(nb_states, nb_actions, args)
-    evaluate = Evaluator(args.validate_episodes, 
+    evaluate =Evaluator(args.validate_episodes, 
         args.validate_steps, args.output, max_episode_length=args.max_episode_length)
 
     if args.mode == 'train':

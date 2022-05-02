@@ -128,9 +128,13 @@ class DDPG(object):
             self.actor(to_tensor(np.array(s_t)))
         )#.squeeze(0)
         action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
+        threshold1 = (action[0] - (-1)) * 0.5
+        threshold2 = action[2] * 0.5 + 0.5
+        slicing_action = int((action[2]-(-1))/2* (FL.total_users-1))      
 
-        action = np.append(np.clip(action[:2], 0., 1.),np.clip(action[2:3], 1, FL.total_users))
-
+        action = np.append(np.clip(threshold1, 0., 0.5), np.clip(threshold2, 0.5, 1.))
+        action = np.append(action, np.array([slicing_action]))
+        
         if decay_epsilon:
             self.epsilon -= self.depsilon
         

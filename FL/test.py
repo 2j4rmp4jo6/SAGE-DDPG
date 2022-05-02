@@ -35,7 +35,7 @@ def test_img_poison(net, datatest):
         if f.gpu != -1:
             data, target = data.to(f.device), target.to(f.device)
         
-        log_probs = net(data.double())
+        log_probs = net(data.float())
         test_loss += F.cross_entropy(log_probs, target, reduction='sum').item()
         # 預測解
         y_pred = log_probs.data.max(1, keepdim=True)[1]
