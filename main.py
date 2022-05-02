@@ -38,7 +38,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
         print("observation: ", observation)
         print("action: ", action)
         # env response with next_observation, reward, terminate_info
-        observation2, reward, done = env.step(episode_steps, action)
+        observation2, reward, done = env.step(episode_steps, action, agent)
         print("reward: ", reward)
 
         observation2 = env.get_observation(episode_steps, action)
@@ -53,10 +53,10 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             agent.update_policy()
         
         # [optional] evaluate
-        if evaluate is not None and validate_steps > 0 and step % validate_steps == 0:
-            policy = lambda x: agent.select_action(x, decay_epsilon=False)
-            validate_reward = evaluate(env, policy, episode_steps, debug=False, visualize=False)
-            if debug: prYellow('[Evaluate] Step_{:07d}: mean_reward:{}'.format(step, validate_reward))
+        # if evaluate is not None and validate_steps > 0 and step % validate_steps == 0:
+        #     policy = lambda x: agent.select_action(x, decay_epsilon=False)
+        #     validate_reward = evaluate(env, policy, episode_steps, debug=False, visualize=False)
+        #     if debug: prYellow('[Evaluate] Step_{:07d}: mean_reward:{}'.format(step, validate_reward))
 
         # [optional] save intermideate model
         if step % int(num_iterations/3) == 0:
@@ -126,6 +126,7 @@ if __name__ == "__main__":
     parser.add_argument('--resume', default='default', type=str, help='Resuming model path for testing')
     # parser.add_argument('--l2norm', default=0.01, type=float, help='l2 weight decay') # TODO
     # parser.add_argument('--cuda', dest='cuda', action='store_true') # TODO
+    parser.add_argument('--restart', default=0, type=int, help='')
 
     args = parser.parse_args()
     args.output = get_output_folder(args.output, args.env)
@@ -147,6 +148,10 @@ if __name__ == "__main__":
     agent = DDPG(nb_states, nb_actions, args)
     evaluate =Evaluator(args.validate_episodes, 
         args.validate_steps, args.output, max_episode_length=args.max_episode_length)
+
+    if args.restart == 1:
+        agent.load_weights(args.output)
+        env.load()
 
     if args.mode == 'train':
         train(args.train_iter, agent, env, evaluate, 

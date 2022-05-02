@@ -129,7 +129,7 @@ class DDPG(object):
         )#.squeeze(0)
         action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
         threshold1 = (action[0] - (-1)) * 0.5
-        threshold2 = action[2] * 0.5 + 0.5
+        threshold2 = action[1] * 0.5 + 0.5
         slicing_action = int((action[2]-(-1))/2* (FL.total_users-1))      
 
         action = np.append(np.clip(threshold1, 0., 0.5), np.clip(threshold2, 0.5, 1.))
@@ -148,24 +148,25 @@ class DDPG(object):
     def load_weights(self, output):
         if output is None: return
 
-        self.actor.load_state_dict(
-            torch.load('{}/actor.pkl'.format(output))
-        )
-
-        self.critic.load_state_dict(
-            torch.load('{}/critic.pkl'.format(output))
-        )
+        path_actor = FL.model_path + '_actor.pt'
+        self.actor.load_state_dict(torch.load(path_actor))
+        # path_actor_target = FL.model_path + '_actor_target.pt'
+        # self.actor_target.load_state_dict(torch.load(path_actor_target))
+        path_critic = FL.model_path + '_critic.pt'
+        self.critic.load_state_dict(torch.load(path_critic))
+        # path_critic_target = FL.model_path + '_critic_target.pt'
+        # self.critic_target.load_state_dict(torch.load(path_critic_target))
 
 
     def save_model(self,output):
-        torch.save(
-            self.actor.state_dict(),
-            '{}/actor.pkl'.format(output)
-        )
-        torch.save(
-            self.critic.state_dict(),
-            '{}/critic.pkl'.format(output)
-        )
+        path_actor = FL.model_path + '_actor.pt'
+        torch.save(self.actor.state_dict(), path_actor)
+        # path_actor_target = FL.model_path + '_actor_target.pt'
+        # torch.save(self.actor_target.state_dict(), path_actor_target)
+        path_critic = FL.model_path + '_critic.pt'
+        torch.save(self.critic.state_dict(), path_critic)
+        # path_critic_target = FL.model_path + '_critic_target.pt'
+        # torch.save(self.critic_target.state_dict(), path_critic_target)
 
     def seed(self,s):
         torch.manual_seed(s)

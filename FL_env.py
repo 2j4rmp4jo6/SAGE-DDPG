@@ -10,6 +10,7 @@ import torch
 import copy
 import numpy as np
 import time
+import pickle
 
 import gym
 
@@ -57,15 +58,15 @@ class FL_env():
         self.true_start_time = time.time()
 
         # 以下紀錄類不確定還會不會用到，不過也是先放著
-        # total reward紀錄
-        self.threshold_rl_total_reward = []
-        self.slicing_rl_total_reward = []
+        # total reward 紀錄
+        self.total_reward = 0
+        self.total_rewards = []
 
-        # loss紀錄
+        # loss 紀錄
         self.threshold_rl_loss = []
         self.slicing_rl_loss = []
         
-        #Attacker ratio紀錄
+        # Attacker ratio 紀錄
         self.attacker_ratio_bad = []
         self.attacker_ratio_good = []
         self.attacker_in_bad = []
@@ -93,7 +94,10 @@ class FL_env():
         # fl_epoch代表現在RL進行到第幾epoch，會在21時用RL做出決策(非隨機)之後時結束RL
         self.fl_epoch = 0
 
-        # agent 的 action 跟 reward 的重製應該不會放在這裡，所以也先跳過
+        # agent 的 action 重製應該不會放在這裡，所以也先跳過
+
+        # total reward 重製
+        self.total_reward = 0
 
         # 用於之後分給 clients
         self.all_users = [i for i in range(f.total_users)]
@@ -131,7 +135,7 @@ class FL_env():
         observation.extend([0.0]*10*3)
         return observation
     
-    def step(self, round, action):
+    def step(self, round, action, agent):
 
         # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
         for client in self.my_clients:
@@ -162,12 +166,11 @@ class FL_env():
                     bad_to_bad += 1
         # reward function
         reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)) * (0.9 ** action[2])
+        self.total_reward += reward
 
         # 中止條件
         if self.fl_epoch > 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
-
-            # 紀錄的 log 那些應該可以不用寫在這裡
 
             self.restart = 1
 
@@ -191,21 +194,29 @@ class FL_env():
             state.extend(intermediate)
             state.extend(bad)
 
-            # # 原本 slicing 的部分
-            # # state 的定義是 [中間 group 各 label 平均 acc, 中間 group  client 數量, 中間 group user 數量]
-            # if len(self.my_groups.acc_rec_intermediate) != 0:
-            #     slicing_state = self.my_groups.acc_per_label_intermediate
-            # else:
-            #     slicing_state = [0.0]*10
-            # intermediate_users = 0
-            # for c in self.my_groups.intermediate:
-            #     intermediate_users += len(self.my_clients[c].local_users)
-            # state.extend(slicing_state)
-            # # 前面有把 slicing 的 action 放進去了，所以這邊先拿掉
-            # # state.extend([action[2], intermediate_users])
-            # state.extend(intermediate_users)
-
             observation = state
+
+            # 紀錄 total reward
+            self.total_rewards.append(self.total_reward)
+            print('total reward: ', self.total_rewards)
+
+            # 紀錄 Attacker ratio
+            for idx in self.my_clients[0].local_users:
+                if idx in self.my_attackers.all_attacker and idx not in self.my_clients[0].attacker_idxs:
+                    self.my_clients[0].attacker_idxs.append(idx)
+            for idx in self.my_clients[1].local_users:
+                if idx in self.my_attackers.all_attacker and idx not in self.my_clients[1].attacker_idxs:
+                    self.my_clients[1].attacker_idxs.append(idx)
+            self.attacker_ratio_good.append(len(self.my_clients[0].attacker_idxs) / self.my_attackers.attacker_count)
+            self.attacker_ratio_bad.append(len(self.my_clients[1].attacker_idxs) / self.my_attackers.attacker_count)
+            print('Attacker ratio good: ', self.attacker_ratio_good)
+            print('Attacker ratio bad: ', self.attacker_ratio_bad)
+
+            path_log_variable = f.model_path + '_log_variable.txt'
+            with open(path_log_variable, "wb") as file:
+                pickle.dump(self.total_rewards, file)
+                pickle.dump(self.attacker_ratio_bad, file)
+                pickle.dump(self.attacker_ratio_good, file)
 
             return observation, reward, True
         
@@ -217,8 +228,6 @@ class FL_env():
         self.my_clients = self.my_shuffle.execution_client(self.my_clients, self.my_groups, round, int(action[2]))
         print("")
         print("inter client num after shuffle", len(self.my_groups.intermediate))
-
-        
 
         # 各 client 跑 local epoch 的時間
         # 因為實際上跑的時候是 sequence 而非 parallel
@@ -332,3 +341,10 @@ class FL_env():
         observation.extend(bad)
         
         return observation
+    
+    def load(self):
+        path_log_variable = f.model_path + '_log_variable.txt'
+        with open(path_log_variable, "rb") as file:
+            self.total_rewards = pickle.load(file)
+            self.attacker_ratio_bad = pickle.load(file)
+            self.attacker_ratio_good = pickle.load(file)
