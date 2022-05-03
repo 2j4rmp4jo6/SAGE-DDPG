@@ -200,6 +200,10 @@ class FL_env():
             self.total_rewards.append(self.total_reward)
             print('total reward: ', self.total_rewards)
 
+            # agent 的 loss
+            print('value loss: ', agent.value_loss_record)
+            print('policy loss: ', agent.policy_loss_record)
+
             # 紀錄 Attacker ratio
             for idx in self.my_clients[0].local_users:
                 if idx in self.my_attackers.all_attacker and idx not in self.my_clients[0].attacker_idxs:
