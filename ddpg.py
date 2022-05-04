@@ -124,6 +124,7 @@ class DDPG(object):
             self.s_t = s_t1
 
     def random_action(self):
+        action = []
         action = np.append(action, [np.random.uniform(0., 0.5)])
         action = np.append(action, [np.random.uniform(0.5, 1.)])
         action = np.append(action, [np.random.randint(low=1, high=FL.total_users)])
