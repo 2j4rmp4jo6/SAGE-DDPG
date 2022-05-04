@@ -135,7 +135,7 @@ class DDPG(object):
         )#.squeeze(0)
         action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
         threshold1 = (action[0] - (-1)) * 0.5
-        threshold2 = action[1] * 0.5 + 0.5
+        threshold2 = (action[1] -(-1)) * 0.5
         slicing_action = int((action[2]-(-1))/2* (FL.total_users-1))
         if slicing_action < 1:
             slicing_action = 1
