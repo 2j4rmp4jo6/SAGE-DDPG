@@ -82,8 +82,8 @@ class FL_env():
         self.observation_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound), dtype=np.float32)
 
         # action = [0.~0.5, 0.51~1, 1~FL.total_users]
-        lower_bound = [0.0, 0.0, -1.]
-        upper_bound = [1.0, 1.0, 1.]
+        lower_bound = [0.0, 0.5, 1.]
+        upper_bound = [0.5, 1.0, f.total_users]
         self.action_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound),dtype=np.float32)
 
     
