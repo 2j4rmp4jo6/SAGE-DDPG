@@ -154,18 +154,26 @@ class FL_env():
         # 算 reward
         # 好的 user 被分到 good group 的數量
         good_to_good = 0
+        # attacker 被分到 good group 的數量
+        bad_to_good = 0        
         # attacker 被分到 bad group 的數量
         bad_to_bad = 0
+        # 好的 user 被分到 bad group 的數量
+        good_to_bad = 0
         for id_c in self.my_shuffle.shuffle_in_good:
             for id_u in self.my_clients[id_c].local_users:
                 if id_u not in self.my_attackers.all_attacker:
                     good_to_good += 1
+                else:
+                    bad_to_good += 1
         for id_c in self.my_shuffle.shuffle_in_bad:
             for id_u in self.my_clients[id_c].local_users:
                 if id_u in self.my_attackers.all_attacker:
                     bad_to_bad += 1
+                else:
+                    good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)) * (0.9 ** action[2])
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))) * (0.9 ** action[2])
         self.total_reward += reward
 
         # 中止條件
