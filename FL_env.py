@@ -136,6 +136,7 @@ class FL_env():
         return observation
     
     def step(self, round, action, agent):
+        self.fl_epoch += 1
 
         # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
         for client in self.my_clients:
@@ -165,11 +166,11 @@ class FL_env():
                 if id_u in self.my_attackers.all_attacker:
                     bad_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)) * (0.9 ** action[2])
+        reward = ((good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)) * (0.9 ** action[2])) - agent.over_boundary * 10
         self.total_reward += reward
 
         # 中止條件
-        if self.fl_epoch > 20 or len(self.my_groups.intermediate) == 0:
+        if round > 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
 
             self.restart = 1

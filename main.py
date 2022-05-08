@@ -33,7 +33,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             action = agent.random_action()
         else:
             action = agent.select_action(observation)
-        if episode_steps<3:
+        if episode_steps < 3:
             action[0] = 0.
         print("observation: ", observation)
         print("action: ", action)

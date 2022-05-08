@@ -64,6 +64,9 @@ class DDPG(object):
         self.value_loss_record = []
         self.policy_loss_record = []
 
+        # 超過 boundary
+        self.over_boundary = 0
+
     def update_policy(self):
         # Sample batch
         state_batch, action_batch, reward_batch, \
@@ -132,6 +135,8 @@ class DDPG(object):
         return action
 
     def select_action(self, s_t, decay_epsilon=True):
+        self.over_boundary = 0
+
         action = to_numpy(
             self.actor(to_tensor(np.array(s_t)))
         )#.squeeze(0)
@@ -139,6 +144,16 @@ class DDPG(object):
         slicing_action = round(action[2])
         if slicing_action < 1:
             slicing_action = 1
+        
+        if action[0] > 0.5:
+            self.over_boundary += action[0] - 0.5
+        elif action[0] < 0:
+            self.over_boundary += 0 - action[0]
+        
+        if action[1] > 1:
+            self.over_boundary += action[1] - 1
+        elif action[1] < 0.5:
+            self.over_boundary += 0.5 - action[1]
 
         action = np.append(np.clip(action[0], 0., 0.5), np.clip(action[1], 0.5, 1.))
         action = np.append(action, np.array([slicing_action]))
