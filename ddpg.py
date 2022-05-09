@@ -147,13 +147,17 @@ class DDPG(object):
         
         if action[0] > 0.5:
             self.over_boundary += action[0] - 0.5
+            print("out of boundary action[0]: ", action[0])
         elif action[0] < 0:
             self.over_boundary += 0 - action[0]
+            print("out of boundary action[0]: ", action[0])
         
         if action[1] > 1:
             self.over_boundary += action[1] - 1
+            print("out of boundary action[1]: ", action[1])
         elif action[1] < 0.5:
             self.over_boundary += 0.5 - action[1]
+            print("out of boundary action[1]: ", action[1])
 
         action = np.append(np.clip(action[0], 0., 0.5), np.clip(action[1], 0.5, 1.))
         action = np.append(action, np.array([slicing_action]))
