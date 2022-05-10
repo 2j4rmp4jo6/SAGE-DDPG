@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     if args.restart == 1:
         agent.load_weights(args.output)
-        env.load()
+        env.load(agent)
 
     if args.mode == 'train':
         train(args.train_iter, agent, env, evaluate, 

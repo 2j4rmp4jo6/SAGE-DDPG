@@ -174,7 +174,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = ((good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) + bad_to_bad * (0.4 / f.attack_ratio) * 10 - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))) * (0.9 ** action[2])) - agent.over_boundary
+        reward = ((good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 10) * (0.9 ** action[2])) - agent.over_boundary
         self.total_reward += reward
 
         # 中止條件
@@ -207,11 +207,11 @@ class FL_env():
 
             # 紀錄 total reward
             self.total_rewards.append(self.total_reward)
-            print('total reward: ', self.total_rewards)
+            # print('total reward: ', self.total_rewards)
 
             # agent 的 loss
-            print('value loss: ', agent.value_loss_record)
-            print('policy loss: ', agent.policy_loss_record)
+            # print('value loss: ', agent.value_loss_record)
+            # print('policy loss: ', agent.policy_loss_record)
 
             # 紀錄 Attacker ratio
             for idx in self.my_clients[0].local_users:
@@ -222,12 +222,14 @@ class FL_env():
                     self.my_clients[1].attacker_idxs.append(idx)
             self.attacker_ratio_good.append(len(self.my_clients[0].attacker_idxs) / self.my_attackers.attacker_count)
             self.attacker_ratio_bad.append(len(self.my_clients[1].attacker_idxs) / self.my_attackers.attacker_count)
-            print('Attacker ratio good: ', self.attacker_ratio_good)
-            print('Attacker ratio bad: ', self.attacker_ratio_bad)
+            # print('Attacker ratio good: ', self.attacker_ratio_good)
+            # print('Attacker ratio bad: ', self.attacker_ratio_bad)
 
             path_log_variable = f.model_path + '_log_variable.txt'
             with open(path_log_variable, "wb") as file:
                 pickle.dump(self.total_rewards, file)
+                pickle.dump(agent.value_loss_record, file)
+                pickle.dump(agent.policy_loss_record, file)
                 pickle.dump(self.attacker_ratio_bad, file)
                 pickle.dump(self.attacker_ratio_good, file)
 
@@ -355,9 +357,11 @@ class FL_env():
         
         return observation
     
-    def load(self):
+    def load(self, agent):
         path_log_variable = f.model_path + '_log_variable.txt'
         with open(path_log_variable, "rb") as file:
             self.total_rewards = pickle.load(file)
+            agent.value_loss_record = pickle.load(file)
+            agent.policy_loss_record = pickle.load(file)
             self.attacker_ratio_bad = pickle.load(file)
             self.attacker_ratio_good = pickle.load(file)
