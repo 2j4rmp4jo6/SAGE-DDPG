@@ -174,7 +174,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = ((good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 10) * (0.9 ** action[2])) - agent.over_boundary
+        reward = bad_to_bad * (0.4 / f.attack_ratio)
         self.total_reward += reward
 
         # 中止條件
