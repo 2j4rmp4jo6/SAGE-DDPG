@@ -312,7 +312,7 @@ class FL_env():
             intermediate = self.my_groups.acc_per_label_intermediate
         else:
             intermediate = [0.0] * 10
-        state=[self.fl_epoch, len(self.my_groups.num_users_good), len(self.my_groups.num_users_intermediate), len(self.my_groups.num_users_bad), action[2]]
+        state=[self.fl_epoch, self.my_groups.num_users_good, self.my_groups.num_users_intermediate, self.my_groups.num_users_bad, action[2]]
         state.extend(good)
         state.extend(intermediate)
         state.extend(bad)
@@ -336,7 +336,7 @@ class FL_env():
             intermediate = self.my_groups.acc_per_label_intermediate
         else:
             intermediate = [0.0] * 10
-        observation=[epoch, len(self.my_groups.good), len(self.my_groups.intermediate), len(self.my_groups.bad), action[2]]
+        observation=[self.fl_epoch, self.my_groups.num_users_good, self.my_groups.num_users_intermediate, self.my_groups.num_users_bad, action[2]]
         observation.extend(good)
         observation.extend(intermediate)
         observation.extend(bad)
