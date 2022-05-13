@@ -317,20 +317,6 @@ class FL_env():
         state.extend(intermediate)
         state.extend(bad)
 
-        # # 原本 slicing 的部分
-        # # state的定義是 [中間 group 各 label 平均 acc, 中間 group  client 數量, 中間 group user 數量]
-        # if len(self.my_groups.acc_rec_intermediate) != 0:
-        #     slicing_state = self.my_groups.acc_per_label_intermediate
-        # else:
-        #     slicing_state = [0.0]*10
-        # intermediate_users = 0
-        # for c in self.my_groups.intermediate:
-        #     intermediate_users += len(self.my_clients[c].local_users)
-        # state.extend(slicing_state)
-        # # 前面有把 slicing 的 action 放進去了，所以這邊先拿掉
-        # # state.extend([action[2], intermediate_users])
-        # state.extend(intermediate_users)
-
         observation = state
 
         return observation, reward, self.restart

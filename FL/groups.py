@@ -64,44 +64,41 @@ class Groups():
 
 
     def record(self,client):
-        if(client.id in self.good):
+        # good group
+        if(client.id == 0):
             self.acc_rec_good.append(client.acc_per_label_avg)
             self.num_users_good += len(client.local_users)
-        
-        if(len(self.acc_rec_good)>0):
+
             self.acc_avg_good = np.average(self.acc_rec_good)
             self.acc_worst_good = np.min(self.acc_rec_good)
 
             # 先將各client的各label acc*client的人數
             acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
-            print(acc_per_label)
             self.acc_per_label_good = [a+b for a,b in zip(self.acc_per_label_good, acc_per_label)]
-            
-        if(client.id in self.bad):
+            print('acc_per_label good: ', self.acc_per_label_good)
+        
+        # bad group
+        elif(client.id == 1):
             self.acc_rec_bad.append(client.acc_per_label_avg)
             self.num_users_bad += len(client.local_users)
-        
-        if(len(self.acc_rec_bad)>0):
+
             self.acc_avg_bad = np.average(self.acc_rec_bad)
             self.acc_worst_bad = np.min(self.acc_rec_bad)
             
             # 先將各client的各label acc*client的人數
             acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
             self.acc_per_label_bad = [a+b for a,b in zip(self.acc_per_label_bad, acc_per_label)]
-
-        # intermediate group用到的
-        if(client.id in self.intermediate):
+            print('acc_per_label bad: ', self.acc_per_label_bad)
+        
+        # intermediate group
+        else:
             self.acc_rec_intermediate.append(client.acc_per_label_avg)
             self.num_users_intermediate += len(client.local_users)
-        
-        if(len(self.acc_rec_intermediate)>0):
+
             self.acc_avg_intermediate = np.average(self.acc_rec_intermediate)
             self.acc_worst_intermediate = np.min(self.acc_rec_intermediate)
 
             # 先將各client的各label acc*client的人數
             acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
             self.acc_per_label_intermediate = [a+b for a,b in zip(self.acc_per_label_intermediate, acc_per_label)]
-
-
-        # print("======")
-        # print("")
+            print('acc_per_label intermediate: ', self.acc_per_label_intermediate)
