@@ -141,9 +141,9 @@ class DDPG(object):
             self.actor(to_tensor(np.array(s_t)))
         )#.squeeze(0)
         action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
-        slicing_action = round(action[2])
-        if slicing_action < 1:
-            slicing_action = 1
+        # slicing_action = round(action[2])
+        # if slicing_action < 1:
+        #     slicing_action = 1
         
         if action[0] > 0.5:
             self.over_boundary += action[0] - 0.5
@@ -158,6 +158,43 @@ class DDPG(object):
         elif action[1] < 0.5:
             self.over_boundary += 0.5 - action[1]
             print("out of boundary action[1]: ", action[1])
+
+        if action[2] > FL.total_users:
+            self.over_boundary += action[2] - FL.total_users
+            print("out of boundary action[2]: ", action[2])
+        elif action[2] < 1:
+            self.over_boundary += 1 - action[2]
+            print("out of boundary action[2]: ", action[2])
+        
+        # 測試用
+        if(self.over_boundary != 0):
+            print("action before clip: ", action)
+
+        low = 0
+        high = 0.5
+
+        scale_factor = (high - low) / 2
+        reloc_factor = high - scale_factor
+
+        action[0] = action[0] * scale_factor + reloc_factor
+
+        low = 0.5
+        high = 1
+
+        scale_factor = (high - low) / 2
+        reloc_factor = high - scale_factor
+
+        action[1] = action[1] * scale_factor + reloc_factor
+
+        low = 1
+        high = 50
+
+        scale_factor = (high - low) / 2
+        reloc_factor = high - scale_factor
+
+        action[2] = action[2] * scale_factor + reloc_factor
+        action[2] = np.clip(action[2], low, high)
+        slicing_action = round(action[2])
 
         action = np.append(np.clip(action[0], 0., 0.5), np.clip(action[1], 0.5, 1.))
         action = np.append(action, np.array([slicing_action]))
