@@ -174,12 +174,15 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = bad_to_bad * (0.4 / f.attack_ratio)
-        self.total_reward += reward
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)) * (0.9 ** action[2]) * (0.9 ** round)
 
         # 中止條件
         if round > 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
+
+            # 最後一 round reward 給 0
+            reward = 0
+            self.total_reward += reward
 
             self.restart = 1
 
@@ -236,6 +239,9 @@ class FL_env():
             return observation, reward, True
         
         print(self.my_attackers.attacker_num, self.my_attackers.attacker_count)
+
+        # 不是最後一 round 的話加上去
+        self.total_reward += reward
 
         # 更新 client、跑 shuffle
         # client ID重新計算
