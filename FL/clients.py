@@ -127,4 +127,5 @@ class Client():
             end_time = time.time()
             print('')
             
-            return end_time - start_time
+            # 測試 mutithread 先拿掉
+            # return end_time - start_time

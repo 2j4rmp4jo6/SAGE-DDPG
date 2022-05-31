@@ -11,6 +11,7 @@ import copy
 import numpy as np
 import time
 import pickle
+import threading
 
 import gym
 
@@ -174,7 +175,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 3) * (0.8 ** (action[2] + round))
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 2) * (0.8 ** (action[2]))
 
         # 中止條件
         if round > 20 or len(self.my_groups.intermediate) == 0:
@@ -258,6 +259,8 @@ class FL_env():
         print("client num", len(self.my_clients))
         print("inter client num", len(self.my_groups.intermediate))
 
+        # 原本的
+        '''
         for client in self.my_clients:
             if len(client.local_users) != 0:
                 start_ep_time = time.time()
@@ -273,6 +276,39 @@ class FL_env():
                 # 並取得所花的時間
                 self.global_test_time += client.show_testing_result(self.my_data)
                 
+                self.my_groups.record(client)
+        '''
+
+        # multithreading
+        threads = []
+        for client in self.my_clients:
+            if len(client.local_users) != 0:
+                if(f.attack_mode == "poison"):
+                    threads.append(threading.Thread(target = client.local_update_poison, args = (self.my_data, self.my_attackers.all_attacker, round)))
+        
+        # multithread 開始
+        for i in range(len(threads)):
+            threads[i].start()
+
+        # 等待 multithread 結束
+        for i in range(len(threads)):
+            threads[i].join()
+        
+        threads = []
+        for client in self.my_clients:
+            if len(client.local_users) != 0:
+                # 對 client 進行 validation
+                # 並取得所花的時間
+                threads.append(threading.Thread(target = client.show_testing_result, args = (self.my_data, )))
+        
+        for i in range(len(threads)):
+            threads[i].start()
+
+        for i in range(len(threads)):
+            threads[i].join()
+
+        for client in self.my_clients:
+            if len(client.local_users) != 0:     
                 self.my_groups.record(client)
             
         if self.my_groups.num_users_good != 0:
