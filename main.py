@@ -1,6 +1,7 @@
 #!/usr/bin/env python3 
 
 import stringprep
+from cv2 import threshold
 import numpy as np
 import argparse
 from copy import deepcopy
@@ -21,6 +22,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
     step = episode = episode_steps = 0
     episode_reward = 0.
     observation = None
+    # bad group threshold 用的 epsilon
+    threshold_epsilon = 4
     while step < num_iterations:
         # reset if it is the start of episode
         if observation is None:
@@ -33,8 +36,10 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             action = agent.random_action()
         else:
             action = agent.select_action(observation)
-        if episode_steps < 3:
+        if episode_steps < threshold_epsilon:
             action[0] = 0.
+        # 這個 decay 可以再調調看
+        threshold_epsilon -= 0.001
         print("observation: ", observation)
         print("action: ", action)
         # env response with next_observation, reward, terminate_info
