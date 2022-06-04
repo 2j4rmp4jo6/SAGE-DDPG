@@ -179,6 +179,10 @@ class FL_env():
         # 中止條件
         if round > 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
+            
+            # 最後一 round reward 不給 0
+            # if len(self.my_groups.intermediate) != 0:
+            #     reward = 0
 
             # 最後一 round reward 給 0
             reward = 0
