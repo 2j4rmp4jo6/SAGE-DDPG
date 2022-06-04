@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 
 
 import stringprep
-from cv2 import threshold
+# from cv2 import threshold
 import numpy as np
 import argparse
 from copy import deepcopy
@@ -30,6 +30,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             print("Episode:", episode)
             observation = deepcopy(env.reset())
             agent.reset(observation)
+            #開始之前先train一次
+            observation, reward, done = env.step(episode_steps, np.array([0. ,1., 50]), agent)
         print("episode_steps: ", episode_steps)
         # agent pick action ...
         if step <= args.warmup:
@@ -110,10 +112,10 @@ if __name__ == "__main__":
     parser.add_argument('--hidden2', default=300, type=int, help='hidden num of second fully connect layer')
     parser.add_argument('--rate', default=0.001, type=float, help='learning rate')
     parser.add_argument('--prate', default=0.0001, type=float, help='policy net learning rate (only for DDPG)')
-    parser.add_argument('--warmup', default=100, type=int, help='time without training but only filling the replay memory')
+    parser.add_argument('--warmup', default=200, type=int, help='time without training but only filling the replay memory')
     parser.add_argument('--discount', default=0.99, type=float, help='')
     parser.add_argument('--bsize', default=64, type=int, help='minibatch size')
-    parser.add_argument('--rmsize', default=6000000, type=int, help='memory size')
+    parser.add_argument('--rmsize', default=60000, type=int, help='memory size')
     parser.add_argument('--window_length', default=1, type=int, help='')
     parser.add_argument('--tau', default=0.001, type=float, help='moving average for target network')
     parser.add_argument('--ou_theta', default=0.15, type=float, help='noise theta')
