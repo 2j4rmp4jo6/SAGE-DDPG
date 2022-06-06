@@ -41,7 +41,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
         if episode_steps < threshold_epsilon:
             action[0] = 0.
         # 這個 decay 可以再調調看
-        threshold_epsilon -= 0.001
+        threshold_epsilon -= 0.002
         print("observation: ", observation)
         print("action: ", action)
         # env response with next_observation, reward, terminate_info
