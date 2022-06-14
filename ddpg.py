@@ -132,6 +132,9 @@ class DDPG(object):
         action = np.append(action, [np.random.uniform(0.5, 1.)])
         action = np.append(action, [np.random.randint(low=1, high=FL.total_users)])
         self.a_t = action
+        # 測試用
+        # action = [0.5, 0.5, 50]
+        # self.a_t = action
         return action
 
     def select_action(self, s_t, decay_epsilon=True):
@@ -203,6 +206,9 @@ class DDPG(object):
             self.epsilon -= self.depsilon
         
         self.a_t = action
+        # 測試用
+        # action = [0.5, 0.5, 50]
+        # self.a_t = action
         return action
 
     def reset(self, obs):
