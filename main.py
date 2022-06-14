@@ -31,7 +31,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             observation = deepcopy(env.reset())
             agent.reset(observation)
             #開始之前先train一次
-            observation, reward, done = env.step(episode_steps, np.array([0. ,1., 50]), agent)
+            observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent)
         print("episode_steps: ", episode_steps)
         # agent pick action ...
         if step <= args.warmup:
