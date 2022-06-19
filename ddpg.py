@@ -195,7 +195,7 @@ class DDPG(object):
         action[2] = np.clip(action[2], low, high)
         slicing_action = round(action[2])
 
-        action = np.append(np.clip(action[0], 0., 0.5), np.clip(action[1], 0.5, 1.))
+        action = np.append(np.clip(action[0], 0., 1.), np.clip(action[1], 0., 1.))
         action = np.append(action, np.array([slicing_action]))
         
         if decay_epsilon:
