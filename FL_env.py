@@ -279,36 +279,43 @@ class FL_env():
                 self.my_groups.record(client)
         '''
 
+        up_time_s = time.time()
+
         # multithreading
         threads = []
-        for client in self.my_clients:
-            if len(client.local_users) != 0:
+        for i in range(len(self.my_clients)):
+            if len(self.my_clients[i].local_users) != 0:
                 if(f.attack_mode == "poison"):
-                    threads.append(threading.Thread(target = client.local_update_poison, args = (self.my_data, self.my_attackers.all_attacker, round)))
-        
-        # multithread 開始
-        for i in range(len(threads)):
-            threads[i].start()
+                    threads.append(threading.Thread(target = self.my_clients[i].local_update_poison, args = (self.my_data, self.my_attackers.all_attacker, round)))
+                    threads[len(threads) - 1].start()
+                    print('Client ', i, ' start update')
 
         # 等待 multithread 結束
         for i in range(len(threads)):
             threads[i].join()
         
-        threads = []
-        for client in self.my_clients:
-            if len(client.local_users) != 0:
-                # 對 client 進行 validation
-                # 並取得所花的時間
-                threads.append(threading.Thread(target = client.show_testing_result, args = (self.my_data, )))
+        up_time_e = time.time()
+        up_time = up_time_e - up_time_s
+        print('up_time: ', up_time)
+
+        tt_time_s = time.time()
         
-        for i in range(len(threads)):
-            threads[i].start()
+        threads = []
+        for i in range(len(self.my_clients)):
+            if len(self.my_clients[i].local_users) != 0:
+                threads.append(threading.Thread(target = self.my_clients[i].show_testing_result, args = (self.my_data, )))
+                threads[len(threads) - 1].start()
+                print('Client ', i, ' start testing')
 
         for i in range(len(threads)):
             threads[i].join()
+        
+        tt_time_e = time.time()
+        tt_time = tt_time_e - tt_time_s
+        print('tt_time: ', tt_time)
 
         for client in self.my_clients:
-            if len(client.local_users) != 0:     
+            if len(client.local_users) != 0:
                 self.my_groups.record(client)
             
         if self.my_groups.num_users_good != 0:

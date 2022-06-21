@@ -88,8 +88,8 @@ class Client():
             self.loss.append(copy.deepcopy(loss))
             self.user_loss[idx] = copy.deepcopy(loss)
         
-        print("Client {}".format(self.id))
-        print(" {}/{} are attackers with {} attack ".format(len(self.attacker_idxs), len(self.local_users), f.attack_mode))
+        # print("Client {}".format(self.id))
+        # print(" {}/{} are attackers with {} attack ".format(len(self.attacker_idxs), len(self.local_users), f.attack_mode))
 
         # 根據照片數的權重，來進行各user的模型參數的平均
         self.user_sizes = np.array([ len(data.dict_users[idx]) for idx in self.local_users ])
@@ -107,25 +107,25 @@ class Client():
         self.loss_avg = np.sum(self.loss * user_weights)
         
         # print('=== Round {:3d}, Average loss {:.6f} ==='.format(round, self.loss_avg))
-        # print(" {} users; time {}".format(len(self.local_users), datetime.now().strftime("%H:%M:%S")) )
+        # print(" {} users; time {}".format(len(self.local_users), datetime.now().strftime("%H:%M:%S"))
 
     def show_testing_result(self,my_data):
-            start_time = time.time()
-            
-            # 進行validation
-            self.acc_test, self.loss_test, self.acc_per_label, self.poison_acc = test_img_poison(self.client_net.to(f.device), my_data.dataset_test)
-            self.acc_per_label_avg = sum(self.acc_per_label)/len(self.acc_per_label)
-            self.acc_per_label_min = min(self.acc_per_label)
-            
-            # print( " Testing accuracy: {} loss: {:.6}".format(self.acc_test, self.loss_test))
-            # print( " Testing Label Acc: {}".format(self.acc_per_label) )
-            # print( " Testing Avg Label Acc : {}".format(self.acc_per_label_avg))
-            # print( " Testing Min Label Acc : {}".format(self.acc_per_label_min))
-            # if f.attack_mode=='poison':
-            #     print( " Poison Acc: {}".format(self.poison_acc) )
-            
-            end_time = time.time()
-            # print('')
-            
-            # 測試 mutithread 先拿掉
-            # return end_time - start_time
+        start_time = time.time()
+        
+        # 進行validation
+        self.acc_test, self.loss_test, self.acc_per_label, self.poison_acc = test_img_poison(self.client_net.to(f.device), my_data.dataset_test)
+        self.acc_per_label_avg = sum(self.acc_per_label)/len(self.acc_per_label)
+        self.acc_per_label_min = min(self.acc_per_label)
+        
+        # print( " Testing accuracy: {} loss: {:.6}".format(self.acc_test, self.loss_test))
+        # print( " Testing Label Acc: {}".format(self.acc_per_label) )
+        # print( " Testing Avg Label Acc : {}".format(self.acc_per_label_avg))
+        # print( " Testing Min Label Acc : {}".format(self.acc_per_label_min))
+        # if f.attack_mode=='poison':
+        #     print( " Poison Acc: {}".format(self.poison_acc) )
+        
+        end_time = time.time()
+        # print('')
+        
+        # 測試 mutithread 先拿掉
+        # return end_time - start_time

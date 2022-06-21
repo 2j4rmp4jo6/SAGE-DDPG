@@ -29,7 +29,7 @@ def test_img_poison(net, datatest):
 
     data_loader = DataLoader(datatest, batch_size=f.test_bs)
     
-    print(' test data_loader(per batch size):',len(data_loader))
+    # print(' test data_loader(per batch size):',len(data_loader))
     
     for idx, (data, target) in enumerate(data_loader):
         if f.gpu != -1:
