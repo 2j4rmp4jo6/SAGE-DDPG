@@ -176,7 +176,8 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 2 - bad_to_good * (0.4 / f.attack_ratio) * 2) * (1 ** (action[2]))
+        # reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))- bad_to_good * (0.4 / f.attack_ratio)) * (1 ** (action[2]))
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)) * (1 ** (action[2])) + 1
 
         # 中止條件
         if round > 20 or len(self.my_groups.intermediate) == 0:
@@ -268,6 +269,7 @@ class FL_env():
         print("client num", len(self.my_clients))
         print("inter client num", len(self.my_groups.intermediate))
 
+        total_time_s = time.time()
         for client in self.my_clients:
             if len(client.local_users) != 0:
                 start_ep_time = time.time()
@@ -284,6 +286,9 @@ class FL_env():
                 self.global_test_time += client.show_testing_result(self.my_data)
                 
                 self.my_groups.record(client)
+        total_time_e = time.time()
+        total_time = total_time_e - total_time_s
+        print('total time: ', total_time)
             
         if self.my_groups.num_users_good != 0:
             self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
