@@ -30,16 +30,18 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             print("Episode:", episode)
             observation = deepcopy(env.reset())
             agent.reset(observation)
-            #開始之前先train一次
-            observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent)
+            #開始之前先 train 幾次
+            for i in range(4):
+                observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent)
         print("episode_steps: ", episode_steps)
         # agent pick action ...
         if step <= args.warmup:
             action = agent.random_action()
         else:
             action = agent.select_action(observation)
-        if episode_steps < threshold_epsilon:
-            action[0] = 0.
+        # 保護機制拿掉
+        # if episode_steps < threshold_epsilon:
+        #     action[0] = 0.
         # 這個 decay 可以再調調看
         threshold_epsilon -= 0.002
         print("observation: ", observation)
