@@ -68,6 +68,8 @@ class FL_env():
         self.slicing_rl_loss = []
         
         # Attacker ratio 紀錄
+        self.normal_ratio_good = []
+        self.normal_ratio_bad = []
         self.attacker_ratio_bad = []
         self.attacker_ratio_good = []
         self.attacker_in_bad = []
@@ -175,14 +177,18 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 4) * (0.8 ** (action[2] + round))
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (1 ** (action[2])) + 1
 
         # 中止條件
         if round > 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
+            
+            # 最後一 round reward 不給 0
+            # if len(self.my_groups.intermediate) != 0:
+            #     reward = 0
 
             # 最後一 round reward 給 0
-            reward = 0
+            # reward = 0
             self.total_reward += reward
 
             self.restart = 1
@@ -226,6 +232,8 @@ class FL_env():
                     self.my_clients[1].attacker_idxs.append(idx)
             self.attacker_ratio_good.append(len(self.my_clients[0].attacker_idxs) / self.my_attackers.attacker_count)
             self.attacker_ratio_bad.append(len(self.my_clients[1].attacker_idxs) / self.my_attackers.attacker_count)
+            self.normal_ratio_good.append((len(self.my_clients[0].local_users) - len(self.my_clients[0].attacker_idxs)) / (f.total_users - self.my_attackers.attacker_count))
+            self.normal_ratio_bad.append((len(self.my_clients[1].local_users) - len(self.my_clients[1].attacker_idxs)) / (f.total_users -  self.my_attackers.attacker_count))
             # print('Attacker ratio good: ', self.attacker_ratio_good)
             # print('Attacker ratio bad: ', self.attacker_ratio_bad)
 
@@ -234,6 +242,8 @@ class FL_env():
                 pickle.dump(self.total_rewards, file)
                 pickle.dump(agent.value_loss_record, file)
                 pickle.dump(agent.policy_loss_record, file)
+                pickle.dump(self.normal_ratio_good, file)
+                pickle.dump(self.normal_ratio_bad, file)
                 pickle.dump(self.attacker_ratio_bad, file)
                 pickle.dump(self.attacker_ratio_good, file)
 
@@ -259,8 +269,9 @@ class FL_env():
         print("client num", len(self.my_clients))
         print("inter client num", len(self.my_groups.intermediate))
 
-        # 原本的
+        # 原本沒有multi-thread的版本
         '''
+        total_time_s = time.time()
         for client in self.my_clients:
             if len(client.local_users) != 0:
                 start_ep_time = time.time()
@@ -277,11 +288,13 @@ class FL_env():
                 self.global_test_time += client.show_testing_result(self.my_data)
                 
                 self.my_groups.record(client)
+        total_time_e = time.time()
+        total_time = total_time_e - total_time_s
+        print('total time: ', total_time)
         '''
 
-        up_time_s = time.time()
-
-        # multithreading
+        # multi-thread的版本
+        update_time_s = time.time()
         threads = []
         for i in range(len(self.my_clients)):
             if len(self.my_clients[i].local_users) != 0:
@@ -293,13 +306,11 @@ class FL_env():
         # 等待 multithread 結束
         for i in range(len(threads)):
             threads[i].join()
-        
-        up_time_e = time.time()
-        up_time = up_time_e - up_time_s
-        print('up_time: ', up_time)
+        update_time_e = time.time()
+        update_time = update_time_e - update_time_s
 
-        tt_time_s = time.time()
-        
+        # testing
+        test_time_s = time.time()
         threads = []
         for i in range(len(self.my_clients)):
             if len(self.my_clients[i].local_users) != 0:
@@ -309,14 +320,15 @@ class FL_env():
 
         for i in range(len(threads)):
             threads[i].join()
-        
-        tt_time_e = time.time()
-        tt_time = tt_time_e - tt_time_s
-        print('tt_time: ', tt_time)
+        test_time_e = time.time()
+        test_time = test_time_e - test_time_s
 
         for client in self.my_clients:
             if len(client.local_users) != 0:
                 self.my_groups.record(client)
+        
+        print('update time: ', update_time)
+        print('test time: ', test_time)
             
         if self.my_groups.num_users_good != 0:
             self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
@@ -398,5 +410,7 @@ class FL_env():
             self.total_rewards = pickle.load(file)
             agent.value_loss_record = pickle.load(file)
             agent.policy_loss_record = pickle.load(file)
+            self.normal_ratio_good = pickle.load(file)
+            self.normal_ratio_bad = pickle.load(file)
             self.attacker_ratio_bad = pickle.load(file)
             self.attacker_ratio_good = pickle.load(file)

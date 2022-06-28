@@ -145,8 +145,8 @@ class DDPG(object):
         # if slicing_action < 1:
         #     slicing_action = 1
         
-        if action[0] > 0.5:
-            self.over_boundary += action[0] - 0.5
+        if action[0] > 1:
+            self.over_boundary += action[0] - 1
             print("out of boundary action[0]: ", action[0])
         elif action[0] < 0:
             self.over_boundary += 0 - action[0]
@@ -155,8 +155,8 @@ class DDPG(object):
         if action[1] > 1:
             self.over_boundary += action[1] - 1
             print("out of boundary action[1]: ", action[1])
-        elif action[1] < 0.5:
-            self.over_boundary += 0.5 - action[1]
+        elif action[1] < 0:
+            self.over_boundary += 0 - action[1]
             print("out of boundary action[1]: ", action[1])
 
         if action[2] > FL.total_users:
@@ -166,19 +166,18 @@ class DDPG(object):
             self.over_boundary += 1 - action[2]
             print("out of boundary action[2]: ", action[2])
         
-        # 測試用
         if(self.over_boundary != 0):
             print("action before clip: ", action)
 
         low = 0
-        high = 0.5
+        high = 1
 
         scale_factor = (high - low) / 2
         reloc_factor = high - scale_factor
 
         action[0] = action[0] * scale_factor + reloc_factor
 
-        low = 0.5
+        low = 0
         high = 1
 
         scale_factor = (high - low) / 2
@@ -187,7 +186,7 @@ class DDPG(object):
         action[1] = action[1] * scale_factor + reloc_factor
 
         low = 1
-        high = 50
+        high = FL.total_users
 
         scale_factor = (high - low) / 2
         reloc_factor = high - scale_factor
@@ -196,7 +195,7 @@ class DDPG(object):
         action[2] = np.clip(action[2], low, high)
         slicing_action = round(action[2])
 
-        action = np.append(np.clip(action[0], 0., 0.5), np.clip(action[1], 0.5, 1.))
+        action = np.append(np.clip(action[0], 0., 1.), np.clip(action[1], 0., 1.))
         action = np.append(action, np.array([slicing_action]))
         
         if decay_epsilon:
