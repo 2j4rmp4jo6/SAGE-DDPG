@@ -177,7 +177,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (1 ** (action[2])) + 1
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) * 0.8 + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 1.5) * (1 ** (action[2])) + 1
 
         # 中止條件
         if round > 20 or len(self.my_groups.intermediate) == 0:
