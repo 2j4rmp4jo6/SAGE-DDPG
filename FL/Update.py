@@ -91,7 +91,7 @@ class LocalUpdate_poison(object):
     def __init__(self, dataset=None, idxs=None, user_idx=None, attack_idxs=None):
         self.loss_func = nn.CrossEntropyLoss()
         self.dataset = dataset
-        self.ldr_train = DataLoader(DatasetSplit(dataset, idxs), batch_size=f.local_bs, shuffle=True)
+        self.ldr_train = DataLoader(DatasetSplit(dataset, idxs), batch_size=f.local_bs, shuffle=True, pin_memory=True)
         self.user_idx = user_idx
         #攻擊者們的id
         self.attack_idxs = attack_idxs      
@@ -108,6 +108,7 @@ class LocalUpdate_poison(object):
         for iter in range(f.local_ep):
             batch_loss = []
 
+            '''
             for batch_idx, (images, labels) in enumerate(self.ldr_train):
                 
                 for label_idx in range(len(labels)):
@@ -127,6 +128,7 @@ class LocalUpdate_poison(object):
                         pass    
                 
                 images, labels = images.to(f.device), labels.to(f.device)
+                # print('images in cuda: ', images.device)
                 
                 net.zero_grad()
 
@@ -134,6 +136,61 @@ class LocalUpdate_poison(object):
                 log_probs = net(images.float())
                 
                 loss = self.loss_func(log_probs, labels)
+                loss.backward()
+                optimizer.step()
+
+                batch_loss.append(loss.item())
+            '''
+            
+            # 改了一下 I/O
+            images_train = np.array([])
+            labels_train = np.array([])
+            # 先做 poison 處理
+            for batch_idx, (images, labels) in enumerate(self.ldr_train):
+
+                for label_idx in range(len(labels)):
+                    
+                    # 是攻擊者的話    
+                    if (f.attack_mode == 'poison') and (labels[label_idx] in f.target_label) and (self.user_idx in self.attack_idxs):
+                        self.attacker_flag = True
+                            
+                        if(f.target_random == True):
+                            # 竄改答案，在非攻擊目標label之外的label隨機選
+                            answer = list(set([0,1,2,3,4,5,6,7,8,9]).remove(labels[label_idx]))
+                            labels[label_idx] = random.choices(answer,k=1)[0]
+                        else:    
+                            labels[label_idx] = int(labels[label_idx] + 1)%10
+
+                    else:
+                        pass
+                # 因為不知道 data 的 size，所以用第一筆決定
+                if len(images_train) == 0:
+                    images_train = np.expand_dims(images, axis=0)
+                    labels_train = np.expand_dims(labels, axis=0)
+                # 剩下用 append 的
+                else:
+                    if images.shape[0] == 10:
+                        images_train = np.append(images_train, np.expand_dims(images, axis=0), axis=0)
+                    # 不知道為什麼會出現 size 不同的 data (size 不一樣不能放同一個 array)
+                    else:
+                        print('id', batch_idx)
+                        print('diff images size: ', images.shape)
+                    if len(labels) == 10:
+                        labels_train = np.append(labels_train, np.expand_dims(labels, axis=0), axis=0)
+                    else:
+                        print('diff labels size: ', labels.shape)
+            # 一起傳進 gpu
+            images_train, labels_train = torch.from_numpy(images_train).to(f.device), torch.from_numpy(labels_train).to(f.device)
+            # 開始更新
+            for i in range(len(images_train)):
+                # 可以用下面這行確認 data 有沒有傳進去 (可是 log 會爆掉XD)
+                # print('data at cuda: ', images_train[i].device)
+                net.zero_grad()
+
+                # 此圖為哪種圖的各機率
+                log_probs = net(images_train[i].float())
+                
+                loss = self.loss_func(log_probs, labels_train[i])
                 loss.backward()
                 optimizer.step()
 
