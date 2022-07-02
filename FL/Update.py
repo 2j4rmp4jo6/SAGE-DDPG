@@ -167,15 +167,15 @@ class LocalUpdate_poison(object):
                 if len(images_train) == 0:
                     images_train = np.expand_dims(images, axis=0)
                     labels_train = np.expand_dims(labels, axis=0)
-                # 剩下用 append 的
+                # 剩下的用 append
                 else:
-                    if images.shape[0] == 10:
+                    if  images_train.shape[1] == images.shape[0]:
                         images_train = np.append(images_train, np.expand_dims(images, axis=0), axis=0)
                     # 不知道為什麼會出現 size 不同的 data (size 不一樣不能放同一個 array)
                     else:
                         print('id', batch_idx)
                         print('diff images size: ', images.shape)
-                    if len(labels) == 10:
+                    if labels_train.shape[1] == len(labels):
                         labels_train = np.append(labels_train, np.expand_dims(labels, axis=0), axis=0)
                     else:
                         print('diff labels size: ', labels.shape)
