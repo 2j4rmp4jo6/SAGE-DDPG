@@ -142,12 +142,14 @@ class LocalUpdate_poison(object):
                 batch_loss.append(loss.item())
             '''
             
-            # 改了一下 I/O
+            # 儲存要一次傳的資料的
             images_train = np.array([])
             labels_train = np.array([])
+            # 儲存要補進數量不足的資料的
+            images_tmp = np.array([])
+            labels_tmp = np.array([])
             # 先做 poison 處理
             for batch_idx, (images, labels) in enumerate(self.ldr_train):
-
                 for label_idx in range(len(labels)):
                     
                     # 是攻擊者的話    
@@ -163,22 +165,29 @@ class LocalUpdate_poison(object):
 
                     else:
                         pass
+                # 隨機取一張放進 tmp，先用第一章圖定義形狀
+                if len(images_tmp) == 0 and images.shape[0] > 1:
+                    r = random.randint(1, images.shape[0] - 1)
+                    images_tmp = np.expand_dims(images[r], axis=0)
+                    labels_tmp = labels[r]
+                elif images.shape[0] > 1:
+                    r = random.randint(1, images.shape[0] - 1)
+                    images_tmp = np.append(images_tmp, np.expand_dims(images[r], axis=0), axis=0)
+                    labels_tmp = np.append(labels_tmp, labels[r])
                 # 因為不知道 data 的 size，所以用第一筆決定
                 if len(images_train) == 0:
                     images_train = np.expand_dims(images, axis=0)
                     labels_train = np.expand_dims(labels, axis=0)
                 # 剩下的用 append
                 else:
-                    if  images_train.shape[1] == images.shape[0]:
-                        images_train = np.append(images_train, np.expand_dims(images, axis=0), axis=0)
-                    # 不知道為什麼會出現 size 不同的 data (size 不一樣不能放同一個 array)
-                    else:
-                        print('id', batch_idx)
-                        print('diff images size: ', images.shape)
-                    if labels_train.shape[1] == len(labels):
-                        labels_train = np.append(labels_train, np.expand_dims(labels, axis=0), axis=0)
-                    else:
-                        print('diff labels size: ', labels.shape)
+                    # 數量不足的補上
+                    while images.shape[0] < images_train.shape[1]:
+                        r = random.randint(1, images_tmp.shape[0] - 1)
+                        images = np.append(images, np.expand_dims(images_tmp[r], axis=0), axis=0)
+                        labels = np.append(labels, np.expand_dims(labels_tmp[r], axis=0), axis=0)
+                    # 加進 training 的 array
+                    images_train = np.append(images_train, np.expand_dims(images, axis=0), axis=0)
+                    labels_train = np.append(labels_train, np.expand_dims(labels, axis=0), axis=0)
             # 一起傳進 gpu
             images_train, labels_train = torch.from_numpy(images_train).to(f.device), torch.from_numpy(labels_train).to(f.device)
             # 開始更新
