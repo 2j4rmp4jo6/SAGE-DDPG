@@ -68,28 +68,25 @@ def test_img_poison(net, datatest):
     # 儲存要補進數量不足的資料的
     data_tmp = np.array([])
     target_tmp = np.array([])
+    batch_len = np.array([])
     for idx, (data, target) in enumerate(data_loader):
         if f.gpu != -1:
-            # 隨機取一張放進 tmp，先用第一章圖定義形狀
-            if len(data_tmp) == 0 and data.shape[0] > 1:
-                r = random.randint(1, data.shape[0] - 1)
-                data_tmp = np.expand_dims(data[r], axis=0)
-                target_tmp = target[r]
-            elif data.shape[0] > 1:
-                r = random.randint(1, data.shape[0] - 1)
-                data_tmp = np.append(data_tmp, np.expand_dims(data[r], axis=0), axis=0)
-                target_tmp = np.append(target_tmp, target[r])
+            # 隨機取一張放進 tmp
+            if len(data_tmp) == 0:
+                data_tmp = data[0]
+                target_tmp = target[0]
             # 因為不知道 data 的 size，所以用第一筆決定
             if len(data_test) == 0:
+                batch_len = np.append(batch_len, data.shape[0])
                 data_test = np.expand_dims(data, axis=0)
                 target_test = np.expand_dims(target, axis=0)
             # 剩下的用 append
             else:
                 # 數量不足的補上
+                batch_len = np.append(batch_len, data.shape[0])
                 while data.shape[0] < data_test.shape[1]:
-                    r = random.randint(1, data_tmp.shape[0] - 1)
-                    data = np.append(data, np.expand_dims(data_tmp[r], axis=0), axis=0)
-                    target = np.append(target, np.expand_dims(target_tmp[r], axis=0), axis=0)
+                    data = np.append(data, np.expand_dims(data_tmp, axis=0), axis=0)
+                    target = np.append(target, np.expand_dims(target_tmp, axis=0), axis=0)
                 # 加進 training 的 array
                 data_test = np.append(data_test, np.expand_dims(data, axis=0), axis=0)
                 target_test = np.append(target_test, np.expand_dims(target, axis=0), axis=0)
@@ -97,12 +94,23 @@ def test_img_poison(net, datatest):
     data_test, target_test = torch.from_numpy(data_test).to(f.device), torch.from_numpy(target_test).to(f.device)
     # 開始 test
     for i in range(len(data_test)):
-        log_probs = net(data_test[i].float())
-        test_loss += F.cross_entropy(log_probs, target_test[i], reduction='sum').item()
-        # 預測解
-        y_pred = log_probs.data.max(1, keepdim=True)[1]
-        # 正解
-        y_gold = target_test[i].data.view_as(y_pred).squeeze(1)
+        # 把多加的拿掉
+        if data_test[i].shape[0] != batch_len[i]:
+            s = np.array([int(batch_len[i])])
+            s = np.append(s, data_tmp.shape)
+            data_t =  data_test[i].resize_(list(s))
+            target_t = target_test[i].resize_(int(batch_len[i]))
+            log_probs = net(data_t.float())
+            test_loss += F.cross_entropy(log_probs, target_t, reduction='sum').item()
+            y_pred = log_probs.data.max(1, keepdim=True)[1]
+            y_gold = target_t.data.view_as(y_pred).squeeze(1)
+        else:
+            log_probs = net(data_test[i].float())
+            test_loss += F.cross_entropy(log_probs, target_test[i], reduction='sum').item()
+            # 預測解
+            y_pred = log_probs.data.max(1, keepdim=True)[1]
+            # 正解
+            y_gold = target_test[i].data.view_as(y_pred).squeeze(1)
         
         y_pred = y_pred.squeeze(1)
 
