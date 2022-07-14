@@ -148,6 +148,7 @@ class LocalUpdate_poison(object):
             # 儲存要補進數量不足的資料的
             images_tmp = np.array([])
             labels_tmp = np.array([])
+            batch_len = np.array([])
             # 先做 poison 處理
             for batch_idx, (images, labels) in enumerate(self.ldr_train):
                 for label_idx in range(len(labels)):
@@ -165,26 +166,22 @@ class LocalUpdate_poison(object):
 
                     else:
                         pass
-                # 隨機取一張放進 tmp，先用第一章圖定義形狀
-                if len(images_tmp) == 0 and images.shape[0] > 1:
-                    r = random.randint(1, images.shape[0] - 1)
-                    images_tmp = np.expand_dims(images[r], axis=0)
-                    labels_tmp = labels[r]
-                elif images.shape[0] > 1:
-                    r = random.randint(1, images.shape[0] - 1)
-                    images_tmp = np.append(images_tmp, np.expand_dims(images[r], axis=0), axis=0)
-                    labels_tmp = np.append(labels_tmp, labels[r])
+                # 隨機取一張放進 tmp
+                if len(images_tmp) == 0:
+                    images_tmp = images[0]
+                    labels_tmp = labels[0]
                 # 因為不知道 data 的 size，所以用第一筆決定
                 if len(images_train) == 0:
+                    batch_len = np.append(batch_len, images.shape[0])
                     images_train = np.expand_dims(images, axis=0)
                     labels_train = np.expand_dims(labels, axis=0)
                 # 剩下的用 append
                 else:
                     # 數量不足的補上
+                    batch_len = np.append(batch_len, images.shape[0])
                     while images.shape[0] < images_train.shape[1]:
-                        r = random.randint(1, images_tmp.shape[0] - 1)
-                        images = np.append(images, np.expand_dims(images_tmp[r], axis=0), axis=0)
-                        labels = np.append(labels, np.expand_dims(labels_tmp[r], axis=0), axis=0)
+                        images = np.append(images, np.expand_dims(images_tmp, axis=0), axis=0)
+                        labels = np.append(labels, np.expand_dims(labels_tmp, axis=0), axis=0)
                     # 加進 training 的 array
                     images_train = np.append(images_train, np.expand_dims(images, axis=0), axis=0)
                     labels_train = np.append(labels_train, np.expand_dims(labels, axis=0), axis=0)
@@ -196,10 +193,19 @@ class LocalUpdate_poison(object):
                 # print('data at cuda: ', images_train[i].device)
                 net.zero_grad()
 
-                # 此圖為哪種圖的各機率
-                log_probs = net(images_train[i].float())
+                # 把多加的拿掉
+                if images_train[i].shape[0] != batch_len[i]:
+                    s = np.array([int(batch_len[i])])
+                    s = np.append(s, images_tmp.shape)
+                    img_t =  images_train[i].resize_(list(s))
+                    label_t = labels_train[i].resize_(int(batch_len[i]))
+                    log_probs = net(img_t.float())
+                    loss = self.loss_func(log_probs, label_t)
+                # 數量正常的
+                else:
+                    log_probs = net(images_train[i].float())
+                    loss = self.loss_func(log_probs, labels_train[i])
                 
-                loss = self.loss_func(log_probs, labels_train[i])
                 loss.backward()
                 optimizer.step()
 
