@@ -32,7 +32,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             agent.reset(observation)
             #開始之前先 train 幾次
             for i in range(4):
-                observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent)
+                print("observation: ", observation)
+                observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent, 1)
         print("episode_steps: ", episode_steps)
         # agent pick action ...
         if step <= args.warmup:
@@ -47,7 +48,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
         print("observation: ", observation)
         print("action: ", action)
         # env response with next_observation, reward, terminate_info
-        observation2, reward, done = env.step(episode_steps, action, agent)
+        observation2, reward, done = env.step(episode_steps, action, agent, 0)
         print("reward: ", reward)
 
         observation2 = env.get_observation(episode_steps, action)

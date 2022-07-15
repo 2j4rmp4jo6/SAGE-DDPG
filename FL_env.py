@@ -11,6 +11,7 @@ import copy
 import numpy as np
 import time
 import pickle
+import math
 
 import gym
 
@@ -133,12 +134,18 @@ class FL_env():
             if(client.id != 0 and client.id != 1):
                 self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
         
-        observation = [self.fl_epoch, 0, f.total_users, 0, f.num_clients ]
+        # client normalize
+        num_client_n = (f.num_clients - 1) / (f.total_users - 1)
+
+        observation = [self.fl_epoch, 0, 1, 0, num_client_n]
         observation.extend([0.0]*10*3)
         return observation
     
-    def step(self, round, action, agent):
-        self.fl_epoch += 1
+    def step(self, round, action, agent, pre_train):
+        if pre_train == 1:
+            self.fl_epoch = 0
+        else:
+            self.fl_epoch += 1
 
         # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
         for client in self.my_clients:
@@ -176,10 +183,10 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (1 ** (action[2])) + 1
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (0.999 ** math.log(action[2]))
 
         # 中止條件
-        if round > 20 or len(self.my_groups.intermediate) == 0:
+        if round >= 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
             
             # 最後一 round reward 不給 0
@@ -207,7 +214,15 @@ class FL_env():
                 intermediate = self.my_groups.acc_per_label_intermediate
             else:
                 intermediate = [0.0] * 10
-            state=[self.fl_epoch, len(self.my_groups.good), len(self.my_groups.intermediate), len(self.my_groups.bad), action[2]]
+            
+            # state normalize
+            fl_epoch_n = (self.fl_epoch - 0) / (20 - 0)
+            good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
+            intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
+            bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
+            num_client_n = (action[2] - 1) / (f.total_users - 1)
+
+            state=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
             state.extend(good)
             state.extend(intermediate)
             state.extend(bad)
@@ -332,7 +347,15 @@ class FL_env():
             intermediate = self.my_groups.acc_per_label_intermediate
         else:
             intermediate = [0.0] * 10
-        state=[self.fl_epoch, self.my_groups.num_users_good, self.my_groups.num_users_intermediate, self.my_groups.num_users_bad, action[2]]
+        
+        # state normalize
+        fl_epoch_n = (self.fl_epoch - 0) / (20 - 0)
+        good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
+        intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
+        bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
+        num_client_n = (action[2] - 1) / (f.total_users - 1)
+        
+        state=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
         state.extend(good)
         state.extend(intermediate)
         state.extend(bad)
@@ -356,7 +379,15 @@ class FL_env():
             intermediate = self.my_groups.acc_per_label_intermediate
         else:
             intermediate = [0.0] * 10
-        observation=[self.fl_epoch, self.my_groups.num_users_good, self.my_groups.num_users_intermediate, self.my_groups.num_users_bad, action[2]]
+
+        # state normalize
+        fl_epoch_n = (self.fl_epoch - 0) / (20 - 0)
+        good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
+        intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
+        bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
+        num_client_n = (action[2] - 1) / (f.total_users - 1)
+
+        observation=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
         observation.extend(good)
         observation.extend(intermediate)
         observation.extend(bad)
