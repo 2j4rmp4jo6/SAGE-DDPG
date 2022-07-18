@@ -100,7 +100,10 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             print("--------------------Test good group-------------------------")
             env.final_test_normal(episode_steps)
             # 儲存合併前的結果
-            acc_good = env.my_clients[0].acc_per_label
+            if(len(env.my_clients[0].local_users) > 0):
+                acc_good = env.my_clients[0].acc_per_label
+            else:
+                acc_good = [0.0]*10
             acc_avg_good = np.average(env.my_clients[0].acc_per_label)
             acc_worst_good = np.min(env.my_clients[0].acc_per_label)
             acc_avg_good_n.append(acc_avg_good)
@@ -112,12 +115,24 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             print("final good accuracy: ", acc_good)
             print("final good accuracy avg: ", acc_avg_good)
             print("final good accuracy min: ", acc_worst_good)
-            print("final good + intermediate accuracy: ", env.my_clients[0].acc_per_label)
-            print("final good + intermediate accuracy avg: ", np.average(env.my_clients[0].acc_per_label))
-            print("final good + intermediate accuracy min: ", np.min(env.my_clients[0].acc_per_label))
-            print("final bad accuracy: ", env.my_clients[1].acc_per_label)
-            print("final bad accuracy avg: ", np.average(env.my_clients[1].acc_per_label))
-            print("final bad accuracy min: ", np.min(env.my_clients[1].acc_per_label))
+            if(len(env.my_clients[0].local_users) > 0):
+                acc_good = env.my_clients[0].acc_per_label
+            else:
+                acc_good = [0.0]*10
+            acc_avg_good = np.average(env.my_clients[0].acc_per_label)
+            acc_worst_good = np.min(env.my_clients[0].acc_per_label)
+            print("final good + intermediate accuracy: ", acc_good)
+            print("final good + intermediate accuracy avg: ", acc_avg_good)
+            print("final good + intermediate accuracy min: ", acc_worst_good)
+            if(len(env.my_clients[1].local_users) > 0):
+                acc_bad = env.my_clients[1].acc_per_label
+            else:
+                acc_bad = [0.0]*10
+            acc_avg_bad = np.average(env.my_clients[1].acc_per_label)
+            acc_worst_bad = np.min(env.my_clients[1].acc_per_label)
+            print("final bad accuracy: ", acc_bad)
+            print("final bad accuracy avg: ", acc_avg_bad)
+            print("final bad accuracy min: ", acc_worst_bad)
             
             # 儲存合併後的結果
             acc_avg_good_c.append(np.average(env.my_clients[0].acc_per_label))
