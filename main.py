@@ -104,8 +104,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
                 acc_good = env.my_clients[0].acc_per_label
             else:
                 acc_good = [0.0]*10
-            acc_avg_good = np.average(env.my_clients[0].acc_per_label)
-            acc_worst_good = np.min(env.my_clients[0].acc_per_label)
+            acc_avg_good = np.average(acc_good)
+            acc_worst_good = np.min(acc_good)
             acc_avg_good_n.append(acc_avg_good)
             acc_worst_good_n.append(acc_worst_good)
 
@@ -119,8 +119,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
                 acc_good = env.my_clients[0].acc_per_label
             else:
                 acc_good = [0.0]*10
-            acc_avg_good = np.average(env.my_clients[0].acc_per_label)
-            acc_worst_good = np.min(env.my_clients[0].acc_per_label)
+            acc_avg_good = np.average(acc_good)
+            acc_worst_good = np.min(acc_good)
             print("final good + intermediate accuracy: ", acc_good)
             print("final good + intermediate accuracy avg: ", acc_avg_good)
             print("final good + intermediate accuracy min: ", acc_worst_good)
@@ -128,15 +128,14 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
                 acc_bad = env.my_clients[1].acc_per_label
             else:
                 acc_bad = [0.0]*10
-            acc_avg_bad = np.average(env.my_clients[1].acc_per_label)
-            acc_worst_bad = np.min(env.my_clients[1].acc_per_label)
+            acc_avg_bad = np.average(acc_bad)
+            acc_worst_bad = np.min(acc_bad)
             print("final bad accuracy: ", acc_bad)
             print("final bad accuracy avg: ", acc_avg_bad)
             print("final bad accuracy min: ", acc_worst_bad)
-            
             # 儲存合併後的結果
-            acc_avg_good_c.append(np.average(env.my_clients[0].acc_per_label))
-            acc_worst_good_c.append(np.min(env.my_clients[0].acc_per_label))
+            acc_avg_good_c.append(acc_avg_good)
+            acc_worst_good_c.append(acc_worst_good)
 
             print("--------------------End episode-------------------------")
 
