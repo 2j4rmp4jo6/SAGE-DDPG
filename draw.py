@@ -86,6 +86,7 @@ plt.savefig(f.model_path[0:-10]+'attacker_ratio_good.jpg')
 plt.show()
 plt.close()
 
+episode = range(len(acc_avg_good_n))
 plt.plot(episode, acc_avg_good_n, color=(0/255, 255/255, 255/255))
 plt.title("Good group average accuracy")
 plt.ylabel("Accuracy")

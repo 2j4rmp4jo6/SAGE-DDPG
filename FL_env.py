@@ -183,7 +183,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) - math.log(action[2])
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (0.999 ** math.log(action[2]))
 
         # 中止條件
         if round >= 20 or len(self.my_groups.intermediate) == 0:
@@ -453,9 +453,9 @@ class FL_env():
         # 分 group
         self.my_shuffle.shuffle_in_good = []
         self.my_shuffle.shuffle_in_bad = []
-        if(len(self.my_shuffle.shuffle_in_intermediate) > 0):
-            for client_id in self.my_shuffle.shuffle_in_intermediate:
-                self.my_shuffle.shuffle_in_good.append(client_id)
+        # 中間有剩人的話，因為上面會把中間 group 分成一個 client 所以直接放 2 進去
+        if(len(self.my_clients) > 2):
+            self.my_shuffle.shuffle_in_good.append(2)
         self.my_shuffle.shuffle_in_intermediate = []
         self.my_groups.good = self.my_shuffle.shuffle_in_good
         self.my_groups.intermediate = self.my_shuffle.shuffle_in_intermediate
