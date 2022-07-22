@@ -183,7 +183,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) - math.log(action[2])
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (0.999 ** math.log(action[2]))
 
         # 中止條件
         if round >= 20 or len(self.my_groups.intermediate) == 0:
@@ -422,26 +422,37 @@ class FL_env():
             print("inter client num after shuffle", len(self.my_groups.intermediate))
         else:
             del self.my_clients[2 : len(self.my_clients) + 2]
-
-        for client in self.my_clients:
-            if len(client.local_users) != 0:
-                if(f.attack_mode == "poison"):
-                    client.local_update_poison(self.my_data, self.my_attackers.all_attacker, round)
-                
-                # 對 client 進行 validation
-                # 並取得所花的時間
-                self.global_test_time += client.show_testing_result(self.my_data)
-                
-                self.my_groups.record(client)
         
-        if self.my_groups.num_users_good != 0:
-            self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
-        if self.my_groups.num_users_bad != 0:
-            self.my_groups.acc_per_label_bad = [i/self.my_groups.num_users_bad for i in self.my_groups.acc_per_label_bad]
-        if self.my_groups.num_users_intermediate != 0:
-            self.my_groups.acc_per_label_intermediate = [i/self.my_groups.num_users_intermediate for i in self.my_groups.acc_per_label_intermediate]
+        # 之後要測試合起來的先備份在這裡
+        self.my_clients_temp = copy.deepcopy(self.my_clients)
+
+        # 要驗證分類結果的 iteration 次數
+        for iteration in range(50):
+            for client in self.my_clients:
+                client.reset(self.fl_epoch)
+            print("test iteration: ", iteration)
+            for client in self.my_clients:
+                if len(client.local_users) != 0:
+                    if(f.attack_mode == "poison"):
+                        client.local_update_poison(self.my_data, self.my_attackers.all_attacker, round)
+                    
+                    # 對 client 進行 validation
+                    # 並取得所花的時間
+                    self.global_test_time += client.show_testing_result(self.my_data)
+                    
+                    self.my_groups.record(client)
+            
+            if self.my_groups.num_users_good != 0:
+                self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
+            if self.my_groups.num_users_bad != 0:
+                self.my_groups.acc_per_label_bad = [i/self.my_groups.num_users_bad for i in self.my_groups.acc_per_label_bad]
+            if self.my_groups.num_users_intermediate != 0:
+                self.my_groups.acc_per_label_intermediate = [i/self.my_groups.num_users_intermediate for i in self.my_groups.acc_per_label_intermediate]
 
     def final_test_combine(self, round):
+        # 把上面的備份放回來
+        self.my_clients = copy.deepcopy(self.my_clients_temp)
+
         # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
         for client in self.my_clients:
             client.reset(self.fl_epoch)
@@ -470,34 +481,39 @@ class FL_env():
         del self.my_clients[2 : len(self.my_clients) + 2]
         print("client length: ", len(self.my_clients))
 
-        for client in self.my_clients:
-            if len(client.local_users) != 0:
-                if(f.attack_mode == "poison"):
-                    client.local_update_poison(self.my_data, self.my_attackers.all_attacker, round)
+        # 要驗證分類結果的 iteration 次數
+        for iteration in range(50):
+            for client in self.my_clients:
+                client.reset(self.fl_epoch)
+            print("test iteration: ", iteration)
+            for client in self.my_clients:
+                if len(client.local_users) != 0:
+                    if(f.attack_mode == "poison"):
+                        client.local_update_poison(self.my_data, self.my_attackers.all_attacker, round)
 
-                self.global_test_time += client.show_testing_result(self.my_data)
-                
-                if(client.id == 1):
-                    self.my_groups.acc_rec_bad.append(client.acc_per_label_avg)
-                    self.my_groups.num_users_bad += len(client.local_users)
-
-                    self.my_groups.acc_avg_bad = np.average(self.my_groups.acc_rec_bad)
-                    self.my_groups.acc_worst_bad = np.min(self.my_groups.acc_rec_bad)
+                    self.global_test_time += client.show_testing_result(self.my_data)
                     
-                    acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
-                    self.my_groups.acc_per_label_bad = [a+b for a,b in zip(self.my_groups.acc_per_label_bad, acc_per_label)]
-                
-                elif(client.id == 0):
-                    self.my_groups.acc_rec_good.append(client.acc_per_label_avg)
-                    self.my_groups.num_users_good += len(client.local_users)
+                    if(client.id == 1):
+                        self.my_groups.acc_rec_bad.append(client.acc_per_label_avg)
+                        self.my_groups.num_users_bad += len(client.local_users)
 
-                    self.my_groups.acc_avg_good = np.average(self.my_groups.acc_rec_good)
-                    self.my_groups.acc_worst_good = np.min(self.my_groups.acc_rec_good)
+                        self.my_groups.acc_avg_bad = np.average(self.my_groups.acc_rec_bad)
+                        self.my_groups.acc_worst_bad = np.min(self.my_groups.acc_rec_bad)
+                        
+                        acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
+                        self.my_groups.acc_per_label_bad = [a+b for a,b in zip(self.my_groups.acc_per_label_bad, acc_per_label)]
+                    
+                    elif(client.id == 0):
+                        self.my_groups.acc_rec_good.append(client.acc_per_label_avg)
+                        self.my_groups.num_users_good += len(client.local_users)
 
-                    acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
-                    self.my_groups.acc_per_label_good = [a+b for a,b in zip(self.my_groups.acc_per_label_good, acc_per_label)]
-        
-        if self.my_groups.num_users_good != 0:
-            self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
-        if self.my_groups.num_users_bad != 0:
-            self.my_groups.acc_per_label_bad = [i/self.my_groups.num_users_bad for i in self.my_groups.acc_per_label_bad]
+                        self.my_groups.acc_avg_good = np.average(self.my_groups.acc_rec_good)
+                        self.my_groups.acc_worst_good = np.min(self.my_groups.acc_rec_good)
+
+                        acc_per_label = [i*len(client.local_users) for i in client.acc_per_label]
+                        self.my_groups.acc_per_label_good = [a+b for a,b in zip(self.my_groups.acc_per_label_good, acc_per_label)]
+            
+            if self.my_groups.num_users_good != 0:
+                self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
+            if self.my_groups.num_users_bad != 0:
+                self.my_groups.acc_per_label_bad = [i/self.my_groups.num_users_bad for i in self.my_groups.acc_per_label_bad]
