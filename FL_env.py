@@ -183,7 +183,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) - math.log(action[2])
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) * (0.999 ** math.log(action[2]))
 
         # 中止條件
         if round >= 20 or len(self.my_groups.intermediate) == 0:
@@ -427,7 +427,7 @@ class FL_env():
         self.my_clients_temp = copy.deepcopy(self.my_clients)
 
         # 要驗證分類結果的 iteration 次數
-        for iteration in range(80):
+        for iteration in range(1):
             for client in self.my_clients:
                 client.reset(self.fl_epoch)
             print("test iteration: ", iteration)
@@ -482,7 +482,7 @@ class FL_env():
         print("client length: ", len(self.my_clients))
 
         # 要驗證分類結果的 iteration 次數
-        for iteration in range(80):
+        for iteration in range(1):
             for client in self.my_clients:
                 client.reset(self.fl_epoch)
             print("test iteration: ", iteration)
