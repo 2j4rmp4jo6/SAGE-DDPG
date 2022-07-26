@@ -7,12 +7,14 @@ import argparse
 from copy import deepcopy
 import torch
 import gym
+import pickle
 
 from normalized_env import NormalizedEnv
 from evaluator import Evaluator
 from ddpg import DDPG
 from util import *
 from FL_env import FL_env
+from config import for_FL as f
 
 # gym.undo_logger_setup()
 
@@ -24,6 +26,13 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
     observation = None
     # bad group threshold 用的 epsilon
     threshold_epsilon = 4
+    # 儲存 accuracy 的東西
+    # 原本的
+    acc_avg_good_n = []
+    acc_worst_good_n = []
+    # good + intermediate
+    acc_avg_good_c = []
+    acc_worst_good_c = []
     while step < num_iterations:
         # reset if it is the start of episode
         if observation is None:
@@ -86,6 +95,57 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
                 agent.select_action(observation),
                 0., False
             )
+
+            # 執行一次確定分類效果
+            print("--------------------Test good group-------------------------")
+            env.final_test_normal(episode_steps)
+            # 儲存合併前的結果
+            if(len(env.my_clients[0].local_users) > 0):
+                acc_good = env.my_clients[0].acc_per_label
+            else:
+                acc_good = [0.0]*10
+            acc_avg_good = np.average(acc_good)
+            acc_worst_good = np.min(acc_good)
+            acc_avg_good_n.append(acc_avg_good)
+            acc_worst_good_n.append(acc_worst_good)
+
+            # 測試 good + intermediate group
+            print("--------------------Test good + intermediate group-------------------------")
+            env.final_test_combine(episode_steps)
+            print("final good accuracy: ", acc_good)
+            print("final good accuracy avg: ", acc_avg_good)
+            print("final good accuracy min: ", acc_worst_good)
+            if(len(env.my_clients[0].local_users) > 0):
+                acc_good = env.my_clients[0].acc_per_label
+            else:
+                acc_good = [0.0]*10
+            acc_avg_good = np.average(acc_good)
+            acc_worst_good = np.min(acc_good)
+            print("final good + intermediate accuracy: ", acc_good)
+            print("final good + intermediate accuracy avg: ", acc_avg_good)
+            print("final good + intermediate accuracy min: ", acc_worst_good)
+            if(len(env.my_clients[1].local_users) > 0):
+                acc_bad = env.my_clients[1].acc_per_label
+            else:
+                acc_bad = [0.0]*10
+            acc_avg_bad = np.average(acc_bad)
+            acc_worst_bad = np.min(acc_bad)
+            print("final bad accuracy: ", acc_bad)
+            print("final bad accuracy avg: ", acc_avg_bad)
+            print("final bad accuracy min: ", acc_worst_bad)
+            # 儲存合併後的結果
+            acc_avg_good_c.append(acc_avg_good)
+            acc_worst_good_c.append(acc_worst_good)
+
+            print("--------------------End episode-------------------------")
+
+            # 紀錄 accuracy 走向
+            path_log_accuracy = f.model_path + '_log_accuracy.txt'
+            with open(path_log_accuracy, "wb") as file:
+                pickle.dump(acc_avg_good_n, file)
+                pickle.dump(acc_worst_good_n, file)
+                pickle.dump(acc_avg_good_c, file)
+                pickle.dump(acc_worst_good_c, file)
 
             # reset
             observation = None
