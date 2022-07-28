@@ -99,7 +99,7 @@ class Client():
         # 等等存 process 所需資料的 list
         args = []
         # 初始化一個 pool，processes 為這個 pool 裡的 process 個數
-        pool = ctx.Pool(processes = 4)
+        pool = ctx.Pool(processes = 3)
         # pool = ctx.Pool(processes = 2, initializer = init_pool_processes, initargs=(lock,))
 
         # torch.multiprocessing.spawn(process, args=(), nprocs=1, join=True, daemon=False, start_method='spawn')

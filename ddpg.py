@@ -15,6 +15,8 @@ import config.for_FL as FL
 
 criterion = nn.MSELoss()
 
+FL.device = torch.device('cuda:{}'.format(FL.gpu) if torch.cuda.is_available() and FL.gpu != -1 else 'cpu')
+
 class DDPG(object):
     def __init__(self, nb_states, nb_actions, args):
         
@@ -116,10 +118,10 @@ class DDPG(object):
         self.critic_target.eval()
 
     def cuda(self):
-        self.actor.cuda()
-        self.actor_target.cuda()
-        self.critic.cuda()
-        self.critic_target.cuda()
+        self.actor.cuda(FL.device)
+        self.actor_target.cuda(FL.device)
+        self.critic.cuda(FL.device)
+        self.critic_target.cuda(FL.device)
 
     def observe(self, r_t, s_t1, done):
         if self.is_training:
