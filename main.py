@@ -16,7 +16,7 @@ from util import *
 from FL_env import FL_env
 from config import for_FL as f
 
-gym.undo_logger_setup()
+# gym.undo_logger_setup()
 
 def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_episode_length=21, debug=False):
 

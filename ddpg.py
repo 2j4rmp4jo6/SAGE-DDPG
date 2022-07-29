@@ -118,10 +118,17 @@ class DDPG(object):
         self.critic_target.eval()
 
     def cuda(self):
-        self.actor.cuda(FL.device)
-        self.actor_target.cuda(FL.device)
-        self.critic.cuda(FL.device)
-        self.critic_target.cuda(FL.device)
+        '''
+        self.actor.cuda()
+        self.actor_target.cuda()
+        self.critic.cuda()
+        self.critic_target.cuda()
+        '''
+        self.actor.to(FL.device)
+        self.actor_target.to(FL.device)
+        self.critic.to(FL.device)
+        self.critic_target.to(FL.device)
+        print("model: ", next(self.actor.parameters()).device)
 
     def observe(self, r_t, s_t1, done):
         if self.is_training:
