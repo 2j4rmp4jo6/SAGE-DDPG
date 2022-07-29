@@ -186,7 +186,7 @@ class LocalUpdate_poison(object):
                     images_train = np.append(images_train, np.expand_dims(images, axis=0), axis=0)
                     labels_train = np.append(labels_train, np.expand_dims(labels, axis=0), axis=0)
             # 一起傳進 gpu
-            images_train, labels_train = torch.from_numpy(images_train).to(f.device), torch.from_numpy(labels_train).to(f.device)
+            images_train, labels_train = torch.from_numpy(images_train).to(0), torch.from_numpy(labels_train).to(0)
             # 開始更新
             for i in range(len(images_train)):
                 # 可以用下面這行確認 data 有沒有傳進去 (可是 log 會爆掉XD)

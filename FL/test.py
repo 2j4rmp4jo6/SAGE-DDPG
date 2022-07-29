@@ -91,7 +91,7 @@ def test_img_poison(net, datatest):
                 data_test = np.append(data_test, np.expand_dims(data, axis=0), axis=0)
                 target_test = np.append(target_test, np.expand_dims(target, axis=0), axis=0)
     # 一起傳進 gpu
-    data_test, target_test = torch.from_numpy(data_test).to(f.device), torch.from_numpy(target_test).to(f.device)
+    data_test, target_test = torch.from_numpy(data_test).to(0), torch.from_numpy(target_test).to(0)
     # 開始 test
     for i in range(len(data_test)):
         # 把多加的拿掉

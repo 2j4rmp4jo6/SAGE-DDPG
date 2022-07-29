@@ -70,7 +70,7 @@ class Client():
 
     def local_update_poison(self,data,all_attacker,round):
         
-        net=copy.deepcopy(self.client_net).to(f.device)
+        net=copy.deepcopy(self.client_net).to(0)
         for idx in self.local_users:
             # 這邊的idxs的值，看先前有沒有改過idxs_labels_sorted，有的話記得也要改
             # 這邊會竄改label(如果是攻擊者的話)，並且各user會訓練model (local training)
@@ -113,7 +113,7 @@ class Client():
         start_time = time.time()
         
         # 進行validation
-        self.acc_test, self.loss_test, self.acc_per_label, self.poison_acc = test_img_poison(self.client_net.to(f.device), my_data.dataset_test)
+        self.acc_test, self.loss_test, self.acc_per_label, self.poison_acc = test_img_poison(self.client_net.to(0), my_data.dataset_test)
         self.acc_per_label_avg = sum(self.acc_per_label)/len(self.acc_per_label)
         self.acc_per_label_min = min(self.acc_per_label)
         
