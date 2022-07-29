@@ -8,7 +8,6 @@ from copy import deepcopy
 import torch
 import gym
 import pickle
-import os
 
 from normalized_env import NormalizedEnv
 from evaluator import Evaluator
@@ -18,7 +17,6 @@ from FL_env import FL_env
 from config import for_FL as f
 
 # gym.undo_logger_setup()
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_episode_length=21, debug=False):
 
