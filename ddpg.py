@@ -124,10 +124,10 @@ class DDPG(object):
         self.critic.cuda()
         self.critic_target.cuda()
         '''
-        self.actor.to(0)
-        self.actor_target.to(0)
-        self.critic.to(0)
-        self.critic_target.to(0)
+        self.actor.to(FL.device)
+        self.actor_target.to(FL.device)
+        self.critic.to(FL.device)
+        self.critic_target.to(FL.device)
         print("model: ", next(self.actor.parameters()).device)
 
     def observe(self, r_t, s_t1, done):
