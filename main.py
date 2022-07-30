@@ -18,7 +18,7 @@ from FL_env import FL_env
 from config import for_FL as f
 
 # gym.undo_logger_setup()
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+# os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_episode_length=21, debug=False):
 
@@ -42,7 +42,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
             observation = deepcopy(env.reset())
             agent.reset(observation)
             #開始之前先 train 幾次
-            for i in range(4):
+            for i in range(1):
                 print("observation: ", observation)
                 observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent, 1)
         print("episode_steps: ", episode_steps)
