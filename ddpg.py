@@ -147,7 +147,7 @@ class DDPG(object):
         self.over_boundary = 0
 
         action = to_numpy(
-            self.actor(to_tensor(np.array(s_t)))
+            self.actor(to_tensor(np.array(s_t)).to(FL.device))
         )#.squeeze(0)
         action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
         # slicing_action = round(action[2])
