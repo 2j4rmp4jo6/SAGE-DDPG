@@ -20,9 +20,10 @@ def to_numpy(var):
     return var.cpu().data.numpy() if USE_CUDA else var.data.numpy()
 
 def to_tensor(ndarray, volatile=False, requires_grad=False, dtype=FLOAT):
-    return Variable(
+    tensor = Variable(
         torch.from_numpy(ndarray), volatile=volatile, requires_grad=requires_grad
-    ).type(dtype).to(f.device)
+    ).to(f.device)
+    return tensor.type(dtype)
 
 def soft_update(target, source, tau):
     for target_param, param in zip(target.parameters(), source.parameters()):
