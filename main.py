@@ -18,7 +18,7 @@ from config import for_FL as f
 
 # gym.undo_logger_setup()
 
-def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_episode_length=21, debug=False):
+def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart, max_episode_length=21, debug=False):
 
     agent.is_training = True
     step = episode = episode_steps = 0
@@ -33,6 +33,14 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, max_epi
     # good + intermediate
     acc_avg_good_c = []
     acc_worst_good_c = []
+    if restart == 1:
+        path_log_accuracy = f.model_path + '_log_accuracy.txt'
+        with open(path_log_accuracy, "rb") as file:
+            acc_avg_good_n = pickle.load(file)
+            acc_worst_good_n = pickle.load(file)
+            acc_avg_good_c = pickle.load(file)
+            acc_worst_good_c = pickle.load(file)
+        print("load sucess!!")
     while step < num_iterations:
         # reset if it is the start of episode
         if observation is None:
@@ -225,7 +233,7 @@ if __name__ == "__main__":
 
     if args.mode == 'train':
         train(args.train_iter, agent, env, evaluate, 
-            args.validate_steps, args.output, max_episode_length=args.max_episode_length, debug=args.debug)
+            args.validate_steps, args.output, args.restart, max_episode_length=args.max_episode_length, debug=args.debug)
 
     elif args.mode == 'test':
         test(args.validate_episodes, agent, env, evaluate, args.resume,
