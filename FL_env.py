@@ -141,7 +141,7 @@ class FL_env():
         observation.extend([0.0]*10*3)
         return observation
     
-    def step(self, round, action, agent, pre_train):
+    def step(self, round, action, agent, pre_train, last_slicing):
         if pre_train == 1:
             self.fl_epoch = 0
         else:
@@ -183,7 +183,8 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5 - bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(action[2])
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5 - bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
+        print("last slicing: ", last_slicing)
 
         # 中止條件
         if round >= 20 or len(self.my_groups.intermediate) == 0:
