@@ -15,6 +15,10 @@ from ddpg import DDPG
 from util import *
 from FL_env import FL_env
 from config import for_FL as f
+import os
+
+# 使用第一張與第三張 GPU 卡
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 # gym.undo_logger_setup()
 

@@ -86,6 +86,10 @@ class Client():
 
     # 每個 process 要做的事 (user local train)
     def process(self, local, net, idx):
+        # 使用第一張 GPU 
+        import os
+        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+        
         # 這裡的deepcopy是因為master model分給其user,這些model是在各user是獨立訓練的
         # w, loss, attack_flag = local.train(net=copy.deepcopy(self.client_net).to(f.device))
         w, loss, attack_flag = local.train(net)
@@ -145,6 +149,7 @@ class Client():
         # 關閉pool並等待所有 process 結束
         pool.close()
         pool.join()
+        del pool
         
         # 把收到的結果案到 user idx 排序，然後存進對應的變數
         pool_outputs.sort(key = sort_key)
