@@ -129,7 +129,6 @@ class DDPG(object):
         self.critic.to(FL.device)
         self.critic_target.to(FL.device)
         print("model: ", next(self.actor.parameters()).device)
-        
 
     def observe(self, r_t, s_t1, done):
         if self.is_training:
