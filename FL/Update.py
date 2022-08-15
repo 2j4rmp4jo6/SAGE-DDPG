@@ -15,6 +15,8 @@ from config import for_FL as f
 
 # random.seed(f.seed)
 
+f.device = torch.device('cuda:{}'.format(f.gpu) if torch.cuda.is_available() and f.gpu != -1 else 'cpu')
+
 class DatasetSplit(Dataset):
     def __init__(self, dataset, idxs):
         self.dataset = dataset
