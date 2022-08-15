@@ -27,7 +27,7 @@ aggregation = 'FedAvg'
 dataset = 'mnist'               
 
 #GPU ID, -1 for CPU
-gpu = 1
+gpu = 0
 
 # gpu or cpu
 device = None
@@ -55,7 +55,7 @@ defence = 'shuffle'
 
 #the path to save trained model
 #要是已經存在的資料夾
-model_path = './LessAction/save_model' 
+model_path = './record/0814/save_model' 
 
 #noniid rate
 noniid = 0.4

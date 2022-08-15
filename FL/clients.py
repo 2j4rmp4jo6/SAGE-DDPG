@@ -87,8 +87,8 @@ class Client():
     # 每個 process 要做的事 (user local train)
     def process(self, local, net, idx):
         # 使用第一張 GPU 
-        import os
-        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+#        import os
+#        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
         
         # 這裡的deepcopy是因為master model分給其user,這些model是在各user是獨立訓練的
         # w, loss, attack_flag = local.train(net=copy.deepcopy(self.client_net).to(f.device))

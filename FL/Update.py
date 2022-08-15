@@ -12,7 +12,9 @@ import torch.nn.functional as F
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from config import for_FL as f
+import os
 
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 # random.seed(f.seed)
 
 f.device = torch.device('cuda:{}'.format(f.gpu) if torch.cuda.is_available() and f.gpu != -1 else 'cpu')

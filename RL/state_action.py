@@ -6,6 +6,10 @@ from ..config import for_RL as r
 import torch.optim as optim
 import numpy as np
 
+import torch
+
+f.device = torch.device('cuda:{}'.format(f.gpu) if torch.cuda.is_available() and f.gpu!=-1 else 'cpu')
+
 class RL_setting():
 
     def __init__(self):

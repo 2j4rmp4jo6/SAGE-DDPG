@@ -6,7 +6,9 @@ import config.for_FL as FL
 from  FL import groups, clients
 from FL.models import CNN_Model
 
+import torch
 
+FL.device = torch.device('cuda:{}'.format(FL.gpu) if torch.cuda.is_available() and FL.gpu!=-1 else 'cpu')
 
 # https://github.com/openai/gym/blob/master/gym/core.py
 class NormalizedEnv(gym.ActionWrapper):
