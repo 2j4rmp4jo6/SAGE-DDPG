@@ -183,7 +183,7 @@ class FL_env():
                 else:
                     good_to_bad += 1
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2) - math.log(last_slicing) + 1
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 1.5 - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5 - bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) + 1
         print("last slicing: ", last_slicing)
 
         # 中止條件
