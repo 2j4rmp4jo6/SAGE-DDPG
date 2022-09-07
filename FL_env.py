@@ -159,7 +159,7 @@ class FL_env():
         start_time = time.time()
 
         # 分 group
-        self.my_shuffle.execution_group(self.my_clients, self.my_groups, round, action[0], action[1])
+        self.my_shuffle.execution_group(self.my_clients, self.my_groups, round, action[0], action[1], pre_train)
 
         # 算 reward
         # 好的 user 被分到 good group 的數量
@@ -185,7 +185,13 @@ class FL_env():
         # 算現在在 intermediate group 的比例
         intermediate_u = (f.total_users - len(self.my_clients[0].local_users) - len(self.my_clients[1].local_users)) / f.total_users
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) - intermediate_u**(20 - self.fl_epoch) * 0.8
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
+        '''
+        if intermediate_u > 0:
+            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) - intermediate_u**(20 - self.fl_epoch) * 0.8
+        else:
+            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
+        '''
         print("intermediate user: ", intermediate_u)
 
         # 中止條件
