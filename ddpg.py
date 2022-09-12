@@ -222,23 +222,30 @@ class DDPG(object):
 
         path_actor = FL.model_path + '_actor.pt'
         self.actor.load_state_dict(torch.load(path_actor))
-        # path_actor_target = FL.model_path + '_actor_target.pt'
-        # self.actor_target.load_state_dict(torch.load(path_actor_target))
+        path_actor_target = FL.model_path + '_actor_target.pt'
+        self.actor_target.load_state_dict(torch.load(path_actor_target))
+        path_actor_optim = FL.model_path + '_actor_optim.pt'
+        self.actor_optim.load_state_dict(torch.load(path_actor_optim))
         path_critic = FL.model_path + '_critic.pt'
         self.critic.load_state_dict(torch.load(path_critic))
-        # path_critic_target = FL.model_path + '_critic_target.pt'
-        # self.critic_target.load_state_dict(torch.load(path_critic_target))
-
+        path_critic_target = FL.model_path + '_critic_target.pt'
+        self.critic_target.load_state_dict(torch.load(path_critic_target))
+        path_critic_optim = FL.model_path + '_critic_optim.pt'
+        self.critic_optim.load_state_dict(torch.load(path_critic_optim))
 
     def save_model(self,output):
         path_actor = FL.model_path + '_actor.pt'
         torch.save(self.actor.state_dict(), path_actor)
-        # path_actor_target = FL.model_path + '_actor_target.pt'
-        # torch.save(self.actor_target.state_dict(), path_actor_target)
+        path_actor_target = FL.model_path + '_actor_target.pt'
+        torch.save(self.actor_target.state_dict(), path_actor_target)
+        path_actor_optim = FL.model_path + '_actor_optim.pt'
+        torch.save(self.actor_optim.state_dict(), path_actor_optim)
         path_critic = FL.model_path + '_critic.pt'
         torch.save(self.critic.state_dict(), path_critic)
-        # path_critic_target = FL.model_path + '_critic_target.pt'
-        # torch.save(self.critic_target.state_dict(), path_critic_target)
+        path_critic_target = FL.model_path + '_critic_target.pt'
+        torch.save(self.critic_target.state_dict(), path_critic_target)
+        path_critic_optim = FL.model_path + '_critic_optim.pt'
+        torch.save(self.critic_optim.state_dict(), path_critic_optim)
 
     def seed(self,s):
         torch.manual_seed(s)

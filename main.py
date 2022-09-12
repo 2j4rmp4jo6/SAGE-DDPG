@@ -49,14 +49,14 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             agent.reset(observation)
             last_slicing = 10
             #開始之前先 train 幾次
-            for i in range(4):
+            for i in range(1):
                 print("observation: ", observation)
                 observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent, 1, last_slicing)
         else:
             last_slicing = action[2]
         print("episode_steps: ", episode_steps)
         # agent pick action ...
-        if step <= args.warmup:
+        if step <= args.warmup and restart == 0:
             action = agent.random_action()
         else:
             action = agent.select_action(observation)
@@ -89,7 +89,9 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
         #     if debug: prYellow('[Evaluate] Step_{:07d}: mean_reward:{}'.format(step, validate_reward))
 
         # [optional] save intermideate model
-        if step % int(num_iterations/3) == 0:
+        # if step % int(num_iterations/3) == 0:
+        if step % 5 == 0:
+            print("save model!")
             agent.save_model(output)
 
         # update 
@@ -233,6 +235,7 @@ if __name__ == "__main__":
     if args.restart == 1:
         agent.load_weights(args.output)
         env.load(agent)
+        print("load success!")
 
     if args.mode == 'train':
         train(args.train_iter, agent, env, evaluate, 

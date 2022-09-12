@@ -1,6 +1,6 @@
 
 #rounds of training
-epochs = 1000
+epochs = 5000
 
 #number of clients
 num_clients = 10
