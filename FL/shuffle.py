@@ -92,9 +92,9 @@ class Shuffle():
     def execution_group(self, clients, groups, round, threshold_bad, threshold_good, pre_train):
         for client in clients:
             if client.id != 0 and client.id != 1:
-                if client.acc_per_label_min > threshold_good and pre_train != 1:
+                if client.acc_per_label_min >= threshold_good and pre_train != 1:
                     self.shuffle_in_good.append(client.id)
-                elif client.acc_per_label_min < threshold_bad and pre_train != 1:
+                elif client.acc_per_label_min <= threshold_bad and pre_train != 1:
                     self.shuffle_in_bad.append(client.id)
                 else:
                     self.shuffle_in_intermediate.append(client.id)
