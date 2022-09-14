@@ -49,7 +49,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             agent.reset(observation)
             last_slicing = 10
             #開始之前先 train 幾次
-            for i in range(1):
+            for i in range(4):
                 print("observation: ", observation)
                 observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent, 1, last_slicing)
         else:
