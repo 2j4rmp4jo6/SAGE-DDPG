@@ -195,7 +195,8 @@ class DDPG(object):
         action[1] = action[1] * scale_factor + reloc_factor
 
         low = 1
-        high = FL.total_users
+        # high = FL.total_users
+        high = 20
 
         scale_factor = (high - low) / 2
         reloc_factor = high - scale_factor

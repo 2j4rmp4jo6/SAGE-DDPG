@@ -27,7 +27,7 @@ aggregation = 'FedAvg'
 dataset = 'mnist'               
 
 #GPU ID, -1 for CPU
-gpu = 1
+gpu = 0
 
 # gpu or cpu
 device = None

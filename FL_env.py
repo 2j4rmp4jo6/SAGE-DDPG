@@ -185,14 +185,14 @@ class FL_env():
         # 算現在在 intermediate group 的比例
         intermediate_u = (f.total_users - len(self.my_clients[0].local_users) - len(self.my_clients[1].local_users)) / f.total_users
         # reward function
-        # reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
-        
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
+        '''
         if intermediate_u > 0:
             reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) * 1.5 - intermediate_u**(20 - self.fl_epoch)
             print("intermediate user: ", intermediate_u)
         else:
             reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) * 1.5
-        
+        '''
         # 中止條件
         if round >= 20 or len(self.my_groups.intermediate) == 0:
             print('--------------------End FL-------------------------')
