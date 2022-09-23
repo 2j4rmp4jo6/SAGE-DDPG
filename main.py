@@ -49,9 +49,9 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             agent.reset(observation)
             last_slicing = 10
             #開始之前先 train 幾次
-            for i in range(4):
+            for i in range(1):
                 print("observation: ", observation)
-                observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent, 1, last_slicing)
+                observation, reward, done = env.step(episode_steps, np.array([0. ,1., 5]), agent, 1, last_slicing)
         else:
             last_slicing = action[2]
         print("episode_steps: ", episode_steps)
@@ -108,7 +108,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
                 agent.select_action(observation),
                 0., False
             )
-
+            # *****之後改*****
+            '''
             # 執行一次確定分類效果
             print("--------------------Test good group-------------------------")
             env.final_test_normal(episode_steps)
@@ -151,6 +152,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             acc_worst_good_c.append(acc_worst_good)
 
             print("--------------------End episode-------------------------")
+            '''
 
             # 紀錄 accuracy 走向
             path_log_accuracy = f.model_path + '_log_accuracy.txt'

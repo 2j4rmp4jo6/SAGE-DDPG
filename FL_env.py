@@ -108,7 +108,7 @@ class FL_env():
         self.idxs_users = np.random.choice(range(f.total_users), f.total_users, replace=False)
 
         Client.ID = 0
-        self.my_clients = [Client(copy.deepcopy(self.FL_net)) for _ in range(f.num_clients + 2)]
+        self.my_clients = [Client(copy.deepcopy(self.FL_net)) for _ in range(f.num_clients)]
 
         # 隨機 attacker ratio
         f.attack_ratio = np.random.uniform(0.1, 0.4)
@@ -131,8 +131,8 @@ class FL_env():
         for client in self.my_clients:
             # 分配 users 給各 client
             # client[0], client[1] 負責放 good, bad group 的 user
-            if(client.id != 0 and client.id != 1):
-                self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
+            # if(client.id != 0 and client.id != 1):
+            self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
         
         # client normalize
         num_client_n = (f.num_clients - 1) / (f.total_users - 1)
@@ -246,16 +246,26 @@ class FL_env():
             # print('policy loss: ', agent.policy_loss_record)
 
             # 紀錄 Attacker ratio
-            for idx in self.my_clients[0].local_users:
-                if idx in self.my_attackers.all_attacker and idx not in self.my_clients[0].attacker_idxs:
-                    self.my_clients[0].attacker_idxs.append(idx)
-            for idx in self.my_clients[1].local_users:
-                if idx in self.my_attackers.all_attacker and idx not in self.my_clients[1].attacker_idxs:
-                    self.my_clients[1].attacker_idxs.append(idx)
-            self.attacker_ratio_good.append(len(self.my_clients[0].attacker_idxs) / self.my_attackers.attacker_count)
-            self.attacker_ratio_bad.append(len(self.my_clients[1].attacker_idxs) / self.my_attackers.attacker_count)
-            self.normal_ratio_good.append((len(self.my_clients[0].local_users) - len(self.my_clients[0].attacker_idxs)) / (f.total_users - self.my_attackers.attacker_count))
-            self.normal_ratio_bad.append((len(self.my_clients[1].local_users) - len(self.my_clients[1].attacker_idxs)) / (f.total_users -  self.my_attackers.attacker_count))
+            normal_user_in_good = 0
+            attacker_in_good = 0
+            normal_user_in_bad = 0
+            attacker_in_bad = 0
+            for idx in self.my_groups.good:
+                for id in self.my_clients[idx].local_users:
+                    if id in self.my_attackers.all_attacker:
+                        attacker_in_good += 1
+                    else:
+                        normal_user_in_good += 1
+            for idx in self.my_groups.bad:
+                for id in self.my_clients[idx].local_users:
+                    if id in self.my_attackers.all_attacker:
+                        attacker_in_bad += 1
+                    else:
+                        normal_user_in_bad += 1
+            self.attacker_ratio_good.append(attacker_in_good / self.my_attackers.attacker_count)
+            self.attacker_ratio_bad.append(attacker_in_bad / self.my_attackers.attacker_count)
+            self.normal_ratio_good.append(normal_user_in_good / (f.total_users - self.my_attackers.attacker_count))
+            self.normal_ratio_bad.append(normal_user_in_bad / (f.total_users - self.my_attackers.attacker_count))
             # print('Attacker ratio good: ', self.attacker_ratio_good)
             # print('Attacker ratio bad: ', self.attacker_ratio_bad)
 
@@ -278,7 +288,7 @@ class FL_env():
 
         # 更新 client、跑 shuffle
         # client ID重新計算
-        Client.ID = 2
+        Client.ID = 0
         self.my_clients = self.my_shuffle.execution_client(self.my_clients, self.my_groups, round, int(action[2]))
         print("")
         print("inter client num after shuffle", len(self.my_groups.intermediate))
