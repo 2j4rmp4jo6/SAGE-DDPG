@@ -139,7 +139,7 @@ class DDPG(object):
         action = []
         action = np.append(action, [np.random.uniform(0., 0.5)])
         action = np.append(action, [np.random.uniform(0.5, 1.)])
-        action = np.append(action, [np.random.randint(low=1, high=FL.total_users)])
+        action = np.append(action, [np.random.randint(low=1, high=FL.max_slicing)])
         self.a_t = action
         return action
 
@@ -168,8 +168,8 @@ class DDPG(object):
             self.over_boundary += 0 - action[1]
             print("out of boundary action[1]: ", action[1])
 
-        if action[2] > FL.total_users:
-            self.over_boundary += action[2] - FL.total_users
+        if action[2] > FL.max_slicing:
+            self.over_boundary += action[2] - FL.max_slicing
             print("out of boundary action[2]: ", action[2])
         elif action[2] < 1:
             self.over_boundary += 1 - action[2]
@@ -195,8 +195,7 @@ class DDPG(object):
         action[1] = action[1] * scale_factor + reloc_factor
 
         low = 1
-        # high = FL.total_users
-        high = 20
+        high = FL.max_slicing
 
         scale_factor = (high - low) / 2
         reloc_factor = high - scale_factor

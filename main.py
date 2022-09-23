@@ -26,6 +26,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
     observation = None
     # bad group threshold 用的 epsilon
     threshold_epsilon = 4
+    '''
     # 儲存 accuracy 的東西
     # 原本的
     acc_avg_good_n = []
@@ -41,6 +42,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             acc_avg_good_c = pickle.load(file)
             acc_worst_good_c = pickle.load(file)
         print("load sucess!!")
+    '''
     while step < num_iterations:
         # reset if it is the start of episode
         if observation is None:
@@ -49,7 +51,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             agent.reset(observation)
             last_slicing = 10
             #開始之前先 train 幾次
-            for i in range(1):
+            for i in range(4):
                 print("observation: ", observation)
                 observation, reward, done = env.step(episode_steps, np.array([0. ,1., 5]), agent, 1, last_slicing)
         else:
@@ -108,7 +110,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
                 agent.select_action(observation),
                 0., False
             )
-            # *****之後改*****
+            # 這邊應該暫時不用驗證，先拿掉
             '''
             # 執行一次確定分類效果
             print("--------------------Test good group-------------------------")
@@ -152,7 +154,6 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             acc_worst_good_c.append(acc_worst_good)
 
             print("--------------------End episode-------------------------")
-            '''
 
             # 紀錄 accuracy 走向
             path_log_accuracy = f.model_path + '_log_accuracy.txt'
@@ -161,6 +162,9 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
                 pickle.dump(acc_worst_good_n, file)
                 pickle.dump(acc_avg_good_c, file)
                 pickle.dump(acc_worst_good_c, file)
+            '''
+            
+            print("--------------------End episode-------------------------")
 
             # reset
             observation = None

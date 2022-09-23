@@ -68,3 +68,6 @@ target_random = False
 
 # print the training loss in local update or not
 local_verbose = False
+
+# slicing 最大值
+max_slicing = 50

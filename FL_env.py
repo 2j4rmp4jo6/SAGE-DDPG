@@ -86,7 +86,7 @@ class FL_env():
 
         # action = [0.~0.5, 0.51~1, 1~FL.total_users]
         lower_bound = [0.0, 0.5, 1.]
-        upper_bound = [0.5, 1.0, f.total_users]
+        upper_bound = [0.5, 1.0, f.max_slicing]
         self.action_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound),dtype=np.float32)
 
     
@@ -185,13 +185,13 @@ class FL_env():
         # 算現在在 intermediate group 的比例
         intermediate_u = (f.total_users - len(self.my_clients[0].local_users) - len(self.my_clients[1].local_users)) / f.total_users
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))- bad_to_good * (0.4 / f.attack_ratio)) - math.log(last_slicing)
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))- bad_to_good * (0.4 / f.attack_ratio)) - math.log(50 - last_slicing)
         '''
         if intermediate_u > 0:
-            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) - intermediate_u**(20 - self.fl_epoch)
+            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(50 - last_slicing) - intermediate_u**(20 - self.fl_epoch)
             print("intermediate user: ", intermediate_u)
         else:
-            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
+            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(50 - last_slicing)
         '''
         # 中止條件
         if round >= 20 or len(self.my_groups.intermediate) == 0:
@@ -423,6 +423,7 @@ class FL_env():
             self.attacker_ratio_bad = pickle.load(file)
             self.attacker_ratio_good = pickle.load(file)
     
+    # 以下應該暫時不會用到所以還沒改成新的 slicing 方式
     def final_test_normal(self, round):
         # 每輪都要重置各 client「分到的 attackers」、「模型參數」、「模型 loss」
         for client in self.my_clients:
