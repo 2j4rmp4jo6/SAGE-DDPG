@@ -68,3 +68,6 @@ target_random = False
 
 # print the training loss in local update or not
 local_verbose = False
+
+# 最大 client 數
+max_client = 20
