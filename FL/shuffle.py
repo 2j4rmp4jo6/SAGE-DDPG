@@ -134,7 +134,7 @@ class Shuffle():
                         shuffle_user_in_intermediate = list(set(shuffle_user_in_intermediate) - clients[id].local_users)
                     clients[intermediate_id_end - 1].local_users = set(np.random.choice(shuffle_user_in_intermediate, extra_user_num_intermediate, replace=False))
                 elif(client_num_intermediate == 1):
-                    clients[client_num_good].local_users = set(shuffle_user_in_intermediate)
+                    clients[good_id_end].local_users = set(shuffle_user_in_intermediate)
                 else:
                     for id in range(good_id_end, intermediate_id_end):
                         clients[id].local_users = set(np.random.choice(shuffle_user_in_intermediate, slice_num, replace=False))
