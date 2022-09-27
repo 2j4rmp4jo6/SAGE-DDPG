@@ -78,7 +78,7 @@ class Groups():
             print('acc_per_label good: ', self.acc_per_label_good)
         
         # bad group
-        elif(client in self.bad):
+        elif(client.id in self.bad):
             self.acc_rec_bad.append(client.acc_per_label_avg)
             self.num_users_bad += len(client.local_users)
 
