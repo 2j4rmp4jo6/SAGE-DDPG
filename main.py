@@ -110,6 +110,30 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
                 agent.select_action(observation),
                 0., False
             )
+
+            # 驗證分類效果
+            for client in env.my_clients:
+                env.my_groups.record(client)
+            bad_to_good = 0
+            bad_to_intermediate = 0
+            bad_to_bad = 0
+            for id_c in env.my_shuffle.shuffle_in_good:
+                for id_u in env.my_clients[id_c].local_users:
+                    if id_u in env.my_attackers.all_attacker:
+                        bad_to_good += 1
+            for id_c in env.my_shuffle.shuffle_in_intermediate:
+                for id_u in env.my_clients[id_c].local_users:
+                    if id_u in env.my_attackers.all_attacker:
+                        bad_to_intermediate += 1
+            for id_c in env.my_shuffle.shuffle_in_bad:
+                for id_u in env.my_clients[id_c].local_users:
+                    if id_u in env.my_attackers.all_attacker:
+                        bad_to_bad += 1
+            
+            print("good group attacker / total user: ", bad_to_good, " / ", env.my_groups.num_users_good)
+            print("intermediate group attacker / total user: ", bad_to_intermediate, " / ", env.my_groups.num_users_intermediate)
+            print("bad group attacker / total user: ", bad_to_bad, " / ", env.my_groups.num_users_bad)
+
             # 這邊應該暫時不用驗證，先拿掉
             '''
             # 執行一次確定分類效果
