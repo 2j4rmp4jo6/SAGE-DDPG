@@ -64,8 +64,9 @@ class FL_env():
         self.total_rewards = []
 
         # loss 紀錄
+        # 拿掉 slicing
         self.threshold_rl_loss = []
-        self.slicing_rl_loss = []
+        # self.slicing_rl_loss = []
         
         # Attacker ratio 紀錄
         self.normal_ratio_good = []
@@ -78,15 +79,18 @@ class FL_env():
 
         # state =  [FL_epoch, 三個 group 人數, intermediate group subset 數, 
         #           good group 各 label accuracy, intermediate group 各 label accuracy, bad group 各 label accuracy]
-        lower_bound = [0, 0, 0, 0, 0]
+        # issue: 這邊的範圍好像都是 0~1，如果 subset 數固定的話也許可以把 10 個 subset 的 acc 放進 state
+        lower_bound = [0.0, 0.0, 0.0, 0.0, 0.0]
         lower_bound.extend([0.0]*10*3)
-        upper_bound = [f.epochs, f.total_users, f.total_users, f.total_users, f.num_clients]
+        # upper_bound = [f.epochs, f.total_users, f.total_users, f.total_users, f.num_clients]
+        upper_bound = [1.0, 1.0, 1.0, 1.0, 1.0]
         upper_bound.extend([1.0]*10*3)
         self.observation_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound), dtype=np.float32)
 
         # action = [0.~0.5, 0.51~1, 1~FL.total_users]
-        lower_bound = [0.0, 0.5, 1.]
-        upper_bound = [0.5, 1.0, f.max_client]
+        # action 剩兩個，這邊先把範圍設成 0~1，選 action 時再調整
+        lower_bound = [0.0, 0.0]
+        upper_bound = [1.0, 1.0]
         self.action_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound),dtype=np.float32)
 
     
@@ -108,7 +112,7 @@ class FL_env():
         self.idxs_users = np.random.choice(range(f.total_users), f.total_users, replace=False)
 
         Client.ID = 0
-        self.my_clients = [Client(copy.deepcopy(self.FL_net)) for _ in range(f.num_clients + 2)]
+        self.my_clients = [Client(copy.deepcopy(self.FL_net)) for _ in range(f.num_clients)]
 
         # 隨機 attacker ratio
         f.attack_ratio = np.random.uniform(0.1, 0.4)
@@ -131,8 +135,8 @@ class FL_env():
         for client in self.my_clients:
             # 分配 users 給各 client
             # client[0], client[1] 負責放 good, bad group 的 user
-            if(client.id != 0 and client.id != 1):
-                self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
+            # if(client.id != 0 and client.id != 1):
+            self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
         
         # client normalize
         num_client_n = (f.num_clients - 1) / (f.total_users - 1)
@@ -141,7 +145,7 @@ class FL_env():
         observation.extend([0.0]*10*3)
         return observation
     
-    def step(self, round, action, agent, pre_train, last_slicing):
+    def step(self, round, action, agent, pre_train):
         if pre_train == 1:
             self.fl_epoch = 0
         else:
@@ -172,29 +176,24 @@ class FL_env():
         good_to_bad = 0
         for id_c in self.my_shuffle.shuffle_in_good:
             for id_u in self.my_clients[id_c].local_users:
-                if id_u not in self.my_attackers.all_attacker:
-                    good_to_good += 1
-                else:
+                if id_u in self.my_attackers.all_attacker:
                     bad_to_good += 1
+                else:
+                    good_to_good += 1
         for id_c in self.my_shuffle.shuffle_in_bad:
             for id_u in self.my_clients[id_c].local_users:
                 if id_u in self.my_attackers.all_attacker:
                     bad_to_bad += 1
                 else:
                     good_to_bad += 1
-        # 算現在在 intermediate group 的比例
-        intermediate_u = (f.total_users - len(self.my_clients[0].local_users) - len(self.my_clients[1].local_users)) / f.total_users
+        print("good_to_good: ", good_to_good)
+        print("bad_to_good: ", bad_to_good)
+        print("bad_to_bad: ", bad_to_bad)
+        print("good_to_bad: ", good_to_bad)
         # reward function
-        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))- bad_to_good * (0.4 / f.attack_ratio)) - math.log(last_slicing)
-        '''
-        if intermediate_u > 0:
-            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing) - intermediate_u**(20 - self.fl_epoch)
-            print("intermediate user: ", intermediate_u)
-        else:
-            reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5- bad_to_good * (0.4 / f.attack_ratio) * 1.5) - math.log(last_slicing)
-        '''
+        reward = (good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio)- good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio))- bad_to_good * (0.4 / f.attack_ratio))
         # 中止條件
-        if round >= 20 or len(self.my_groups.intermediate) == 0:
+        if round >= 20:
             print('--------------------End FL-------------------------')
             
             # 最後一 round reward 不給 0
@@ -228,7 +227,7 @@ class FL_env():
             good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
             intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
             bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
-            num_client_n = (action[2] - 1) / (f.total_users - 1)
+            num_client_n = (f.num_clients - 1) / (f.total_users - 1)
 
             state=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
             state.extend(good)
@@ -246,18 +245,22 @@ class FL_env():
             # print('policy loss: ', agent.policy_loss_record)
 
             # 紀錄 Attacker ratio
-            for idx in self.my_clients[0].local_users:
-                if idx in self.my_attackers.all_attacker and idx not in self.my_clients[0].attacker_idxs:
-                    self.my_clients[0].attacker_idxs.append(idx)
-            for idx in self.my_clients[1].local_users:
-                if idx in self.my_attackers.all_attacker and idx not in self.my_clients[1].attacker_idxs:
-                    self.my_clients[1].attacker_idxs.append(idx)
-            self.attacker_ratio_good.append(len(self.my_clients[0].attacker_idxs) / self.my_attackers.attacker_count)
-            self.attacker_ratio_bad.append(len(self.my_clients[1].attacker_idxs) / self.my_attackers.attacker_count)
-            self.normal_ratio_good.append((len(self.my_clients[0].local_users) - len(self.my_clients[0].attacker_idxs)) / (f.total_users - self.my_attackers.attacker_count))
-            self.normal_ratio_bad.append((len(self.my_clients[1].local_users) - len(self.my_clients[1].attacker_idxs)) / (f.total_users -  self.my_attackers.attacker_count))
-            # print('Attacker ratio good: ', self.attacker_ratio_good)
-            # print('Attacker ratio bad: ', self.attacker_ratio_bad)
+            if good_to_good + bad_to_good > 0:
+                self.attacker_ratio_good.append(bad_to_good / (good_to_good + bad_to_good))
+                self.normal_ratio_good.append(good_to_good / (good_to_good + bad_to_good))
+                print('Attacker ratio good: ', bad_to_good / (good_to_good + bad_to_good))
+            else:
+                self.attacker_ratio_good.append(0)
+                self.normal_ratio_good.append(0)
+                print('Attacker ratio good: ', 0)
+            if good_to_bad + bad_to_bad > 0:
+                self.attacker_ratio_bad.append(bad_to_bad / (good_to_bad + bad_to_bad))
+                self.normal_ratio_bad.append(good_to_bad / (good_to_good + bad_to_good))
+                print('Attacker ratio bad: ', bad_to_bad / (good_to_bad + bad_to_bad))
+            else:
+                self.attacker_ratio_bad.append(0)
+                self.normal_ratio_bad.append(0)
+                print('Attacker ratio bad: ', 0)
 
             path_log_variable = f.model_path + '_log_variable.txt'
             with open(path_log_variable, "wb") as file:
@@ -278,18 +281,18 @@ class FL_env():
 
         # 更新 client、跑 shuffle
         # client ID重新計算
-        Client.ID = 2
-        self.my_clients = self.my_shuffle.execution_client(self.my_clients, self.my_groups, round, int(action[2]))
-        print("")
-        print("inter client num after shuffle", len(self.my_groups.intermediate))
+        # Client.ID = 0
+        self.my_shuffle.execution_client(self.my_clients, self.my_groups, round, f.num_clients)
 
         # 各 client 跑 local epoch 的時間
         # 因為實際上跑的時候是 sequence 而非 parallel
         # 要是能 parallel 更好
         self.local_ep_time = []
         self.global_test_time = 0
-        print("client num", len(self.my_clients))
-        print("inter client num", len(self.my_groups.intermediate))
+        print("client num: ", len(self.my_clients))
+        print("good client num: ", len(self.my_groups.good))
+        print("inter client num: ", len(self.my_groups.intermediate))
+        print("bad client num: ", len(self.my_groups.bad))
 
         total_time_s = time.time()
         for client in self.my_clients:
@@ -313,11 +316,11 @@ class FL_env():
         print('total time: ', total_time)
             
         if self.my_groups.num_users_good != 0:
-            self.my_groups.acc_per_label_good = [i/self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
+            self.my_groups.acc_per_label_good = [i / self.my_groups.num_users_good for i in self.my_groups.acc_per_label_good]
         if self.my_groups.num_users_bad != 0:
-            self.my_groups.acc_per_label_bad = [i/self.my_groups.num_users_bad for i in self.my_groups.acc_per_label_bad]
+            self.my_groups.acc_per_label_bad = [i / self.my_groups.num_users_bad for i in self.my_groups.acc_per_label_bad]
         if self.my_groups.num_users_intermediate != 0:
-            self.my_groups.acc_per_label_intermediate = [i/self.my_groups.num_users_intermediate for i in self.my_groups.acc_per_label_intermediate]
+            self.my_groups.acc_per_label_intermediate = [i / self.my_groups.num_users_intermediate for i in self.my_groups.acc_per_label_intermediate]
         
         # 模擬parallel，所以只取花費時間最長的local epoch time
         if len(self.local_ep_time) != 0:
@@ -361,7 +364,7 @@ class FL_env():
         good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
         intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
         bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
-        num_client_n = (action[2] - 1) / (f.total_users - 1)
+        num_client_n = (f.num_clients - 1) / (f.total_users - 1)
         
         state=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
         state.extend(good)
@@ -393,7 +396,7 @@ class FL_env():
         good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
         intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
         bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
-        num_client_n = (action[2] - 1) / (f.total_users - 1)
+        num_client_n = (f.num_clients - 1) / (f.total_users - 1)
 
         observation=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
         observation.extend(good)
@@ -423,13 +426,7 @@ class FL_env():
         # self.my_shuffle.reset()
 
         # 更新 client、跑 shuffle
-        if(len(self.my_shuffle.shuffle_in_intermediate) >= 1):
-            # client ID重新計算
-            Client.ID = 2
-            self.my_clients = self.my_shuffle.execution_client(self.my_clients, self.my_groups, 0, 1)
-            print("inter client num after shuffle", len(self.my_groups.intermediate))
-        else:
-            del self.my_clients[2 : len(self.my_clients) + 2]
+        self.my_shuffle.execution_client(self.my_clients, self.my_groups, 0, 1)
         
         # 之後要測試合起來的先備份在這裡
         self.my_clients_temp = copy.deepcopy(self.my_clients)

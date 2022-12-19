@@ -25,21 +25,21 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
     episode_reward = 0.
     observation = None
     # bad group threshold 用的 epsilon
-    threshold_epsilon = 4
+    # threshold_epsilon = 4
     # 儲存 accuracy 的東西
     # 原本的
     acc_avg_good_n = []
     acc_worst_good_n = []
     # good + intermediate
-    acc_avg_good_c = []
-    acc_worst_good_c = []
+    # acc_avg_good_c = []
+    # acc_worst_good_c = []
     if restart == 1:
         path_log_accuracy = f.model_path + '_log_accuracy.txt'
         with open(path_log_accuracy, "rb") as file:
             acc_avg_good_n = pickle.load(file)
             acc_worst_good_n = pickle.load(file)
-            acc_avg_good_c = pickle.load(file)
-            acc_worst_good_c = pickle.load(file)
+            # acc_avg_good_c = pickle.load(file)
+            # acc_worst_good_c = pickle.load(file)
         print("load sucess!!")
     while step < num_iterations:
         # reset if it is the start of episode
@@ -47,13 +47,10 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             print("Episode:", episode)
             observation = deepcopy(env.reset())
             agent.reset(observation)
-            last_slicing = 10
             #開始之前先 train 幾次
-            for i in range(4):
+            for i in range(1):
                 print("observation: ", observation)
-                observation, reward, done = env.step(episode_steps, np.array([0. ,1., 10]), agent, 1, last_slicing)
-        else:
-            last_slicing = action[2]
+                observation, reward, done = env.step(episode_steps, np.array([0, 10]), agent, 1)
         print("episode_steps: ", episode_steps)
         # agent pick action ...
         if step <= args.warmup and restart == 0:
@@ -64,11 +61,11 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
         # if episode_steps < threshold_epsilon:
         #     action[0] = 0.
         # 這個 decay 可以再調調看
-        threshold_epsilon -= 0.002
+        # threshold_epsilon -= 0.002
         print("observation: ", observation)
         print("action: ", action)
         # env response with next_observation, reward, terminate_info
-        observation2, reward, done = env.step(episode_steps, action, agent, 0, last_slicing)
+        observation2, reward, done = env.step(episode_steps, action, agent, 0)
         print("reward: ", reward)
 
         observation2 = env.get_observation(episode_steps, action)
@@ -113,8 +110,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             print("--------------------Test good group-------------------------")
             env.final_test_normal(episode_steps)
             # 儲存合併前的結果
-            if(len(env.my_clients[0].local_users) > 0):
-                acc_good = env.my_clients[0].acc_per_label
+            if len(env.my_groups.good) > 0:
+                acc_good = env.my_groups.acc_per_label_good
             else:
                 acc_good = [0.0]*10
             acc_avg_good = np.average(acc_good)
@@ -122,6 +119,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             acc_avg_good_n.append(acc_avg_good)
             acc_worst_good_n.append(acc_worst_good)
 
+            # 這個部分應該先不用做
+            '''
             # 測試 good + intermediate group
             print("--------------------Test good + intermediate group-------------------------")
             env.final_test_combine(episode_steps)
@@ -149,6 +148,7 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             # 儲存合併後的結果
             acc_avg_good_c.append(acc_avg_good)
             acc_worst_good_c.append(acc_worst_good)
+            '''
 
             print("--------------------End episode-------------------------")
 
@@ -157,8 +157,8 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             with open(path_log_accuracy, "wb") as file:
                 pickle.dump(acc_avg_good_n, file)
                 pickle.dump(acc_worst_good_n, file)
-                pickle.dump(acc_avg_good_c, file)
-                pickle.dump(acc_worst_good_c, file)
+                # pickle.dump(acc_avg_good_c, file)
+                # pickle.dump(acc_worst_good_c, file)
 
             # reset
             observation = None
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--init_w', default=0.003, type=float, help='') 
     parser.add_argument('--train_iter', default=200000, type=int, help='train iters each timestep')
-    parser.add_argument('--epsilon', default=50000, type=int, help='linear decay of exploration policy')
+    parser.add_argument('--epsilon', default=8000, type=int, help='linear decay of exploration policy')
     parser.add_argument('--seed', default=-1, type=int, help='')
     parser.add_argument('--resume', default='default', type=str, help='Resuming model path for testing')
     # parser.add_argument('--l2norm', default=0.01, type=float, help='l2 weight decay') # TODO

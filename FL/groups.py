@@ -31,7 +31,7 @@ class Groups():
         self.acc_per_label_intermediate = [0.0] * 10
 
         # intermediate group用到的 (最初所有client都在此處)
-        self.intermediate = [i for i in range(f.num_clients+2)]
+        self.intermediate = [i for i in range(f.num_clients)]
         self.acc_rec_intermediate = []
         self.acc_worst_intermediate = 0
         self.acc_avg_intermediate = 0
@@ -65,7 +65,7 @@ class Groups():
 
     def record(self,client):
         # good group
-        if(client.id == 0):
+        if client.id in self.good:
             self.acc_rec_good.append(client.acc_per_label_avg)
             self.num_users_good += len(client.local_users)
 
@@ -78,7 +78,7 @@ class Groups():
             print('acc_per_label good: ', self.acc_per_label_good)
         
         # bad group
-        elif(client.id == 1):
+        elif client.id in self.bad:
             self.acc_rec_bad.append(client.acc_per_label_avg)
             self.num_users_bad += len(client.local_users)
 

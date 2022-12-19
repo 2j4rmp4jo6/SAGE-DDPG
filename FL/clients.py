@@ -48,8 +48,8 @@ class Client():
         Client.ID += 1
 
     def reset(self,epoch):
-        if epoch==1:
-            self.attacker_idxs = []
+        # if epoch==1:
+        self.attacker_idxs = []
         self.weights = []
         self.user_loss = {}
         self.loss = []

@@ -17,8 +17,8 @@ path_log_accuracy = f.model_path + '_log_accuracy.txt'
 with open(path_log_accuracy, "rb") as file:
     acc_avg_good_n = pickle.load(file)
     acc_worst_good_n = pickle.load(file)
-    acc_avg_good_c = pickle.load(file)
-    acc_worst_good_c = pickle.load(file)
+    # acc_avg_good_c = pickle.load(file)
+    # acc_worst_good_c = pickle.load(file)
 
 episode = range(len(total_rewards))
 print('Episode: ', len(total_rewards))
@@ -87,6 +87,7 @@ plt.savefig(f.model_path[0:-10]+'attacker_ratio_good.jpg')
 plt.show()
 plt.close()
 
+'''
 episode = range(len(acc_avg_good_n))
 plt.plot(episode, acc_avg_good_n, color=(0/255, 255/255, 255/255), label="good")
 plt.plot(episode, acc_avg_good_c, color=(128/255, 138/255, 135/255), label="good + intermsdiate")
@@ -109,3 +110,4 @@ plt.legend()
 plt.savefig(f.model_path[0:-10]+'acc_worst_good_n.jpg')
 plt.show()
 plt.close()
+'''

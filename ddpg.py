@@ -137,9 +137,11 @@ class DDPG(object):
 
     def random_action(self):
         action = []
-        action = np.append(action, [np.random.uniform(0., 0.5)])
-        action = np.append(action, [np.random.uniform(0.5, 1.)])
-        action = np.append(action, [np.random.randint(low=1, high=FL.max_client)])
+        action = np.append(action, [np.random.randint(FL.num_clients + 1)])
+        action = np.append(action, [np.random.randint(FL.num_clients + 1)])
+        print("rand action: ", action)
+        if action[0] + action[1] > 10:
+            action = [10, 0]
         self.a_t = action
         return action
 
@@ -149,7 +151,7 @@ class DDPG(object):
         action = to_numpy(
             self.actor(to_tensor(np.array(s_t)))
         )#.squeeze(0)
-        action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
+        action += self.is_training * max(self.epsilon, 0) * self.random_process.sample()
         # slicing_action = round(action[2])
         # if slicing_action < 1:
         #     slicing_action = 1
@@ -167,45 +169,29 @@ class DDPG(object):
         elif action[1] < 0:
             self.over_boundary += 0 - action[1]
             print("out of boundary action[1]: ", action[1])
-
-        if action[2] > FL.max_client:
-            self.over_boundary += action[2] - FL.max_client
-            print("out of boundary action[2]: ", action[2])
-        elif action[2] < 1:
-            self.over_boundary += 1 - action[2]
-            print("out of boundary action[2]: ", action[2])
         
         if(self.over_boundary != 0):
             print("action before clip: ", action)
 
         low = 0
-        high = 1
+        high = FL.num_clients
 
         scale_factor = (high - low) / 2
         reloc_factor = high - scale_factor
 
         action[0] = action[0] * scale_factor + reloc_factor
+        action[0] = round(np.clip(action[0], low, high))
 
         low = 0
-        high = 1
+        high = FL.num_clients
 
         scale_factor = (high - low) / 2
         reloc_factor = high - scale_factor
 
         action[1] = action[1] * scale_factor + reloc_factor
+        action[1] = round(np.clip(action[1], low, high))
 
-        low = 1
-        high = FL.max_client
-
-        scale_factor = (high - low) / 2
-        reloc_factor = high - scale_factor
-
-        action[2] = action[2] * scale_factor + reloc_factor
-        action[2] = np.clip(action[2], low, high)
-        slicing_action = round(action[2])
-
-        action = np.append(np.clip(action[0], 0., 1.), np.clip(action[1], 0., 1.))
-        action = np.append(action, np.array([slicing_action]))
+        action = np.append(action[0], action[1])
         
         if decay_epsilon:
             self.epsilon -= self.depsilon
