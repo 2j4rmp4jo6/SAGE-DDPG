@@ -255,7 +255,7 @@ class FL_env():
                 print('Attacker ratio good: ', 0)
             if good_to_bad + bad_to_bad > 0:
                 self.attacker_ratio_bad.append(bad_to_bad / (good_to_bad + bad_to_bad))
-                self.normal_ratio_bad.append(good_to_bad / (good_to_good + bad_to_good))
+                self.normal_ratio_bad.append(good_to_bad / (good_to_bad + bad_to_bad))
                 print('Attacker ratio bad: ', bad_to_bad / (good_to_bad + bad_to_bad))
             else:
                 self.attacker_ratio_bad.append(0)
