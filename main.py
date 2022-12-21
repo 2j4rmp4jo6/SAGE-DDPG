@@ -118,6 +118,9 @@ def train(num_iterations, agent, env,  evaluate, validate_steps, output, restart
             acc_worst_good = np.min(acc_good)
             acc_avg_good_n.append(acc_avg_good)
             acc_worst_good_n.append(acc_worst_good)
+            print("final good accuracy: ", acc_good)
+            print("final good accuracy avg: ", acc_avg_good)
+            print("final good accuracy min: ", acc_worst_good)
 
             # 這個部分應該先不用做
             '''
