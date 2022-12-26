@@ -191,6 +191,10 @@ class DDPG(object):
         action[1] = action[1] * scale_factor + reloc_factor
         action[1] = round(np.clip(action[1], low, high))
 
+        if action[0] + action[1] > 10:
+            action[0] = 10
+            action[1] = 0
+
         action = np.append(action[0], action[1])
         
         if decay_epsilon:

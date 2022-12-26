@@ -80,10 +80,10 @@ class FL_env():
         # state =  [FL_epoch, 三個 group 人數, intermediate group subset 數, 
         #           good group 各 label accuracy, intermediate group 各 label accuracy, bad group 各 label accuracy]
         # issue: 這邊的範圍好像都是 0~1，如果 subset 數固定的話也許可以把 10 個 subset 的 acc 放進 state
-        lower_bound = [0.0, 0.0, 0.0, 0.0, 0.0]
+        lower_bound = [0.0, 0.0, 0.0, 0.0]
         lower_bound.extend([0.0]*10*3)
         # upper_bound = [f.epochs, f.total_users, f.total_users, f.total_users, f.num_clients]
-        upper_bound = [1.0, 1.0, 1.0, 1.0, 1.0]
+        upper_bound = [1.0, 1.0, 1.0, 1.0]
         upper_bound.extend([1.0]*10*3)
         self.observation_space = gym.spaces.Box(low=np.array(lower_bound), high=np.array(upper_bound), dtype=np.float32)
 
@@ -137,11 +137,8 @@ class FL_env():
             # client[0], client[1] 負責放 good, bad group 的 user
             # if(client.id != 0 and client.id != 1):
             self.all_users = client.split_user_to_client(self.all_users, self.my_attackers.all_attacker)
-        
-        # client normalize
-        num_client_n = (f.num_clients - 1) / (f.total_users - 1)
 
-        observation = [self.fl_epoch, 0, 1, 0, num_client_n]
+        observation = [self.fl_epoch, 0, 1, 0]
         observation.extend([0.0]*10*3)
         return observation
     
@@ -227,9 +224,8 @@ class FL_env():
             good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
             intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
             bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
-            num_client_n = (f.num_clients - 1) / (f.total_users - 1)
 
-            state=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
+            state=[fl_epoch_n, good_users, intermediate_users, bad_users]
             state.extend(good)
             state.extend(intermediate)
             state.extend(bad)
@@ -364,9 +360,8 @@ class FL_env():
         good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
         intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
         bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
-        num_client_n = (f.num_clients - 1) / (f.total_users - 1)
         
-        state=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
+        state=[fl_epoch_n, good_users, intermediate_users, bad_users]
         state.extend(good)
         state.extend(intermediate)
         state.extend(bad)
@@ -396,9 +391,8 @@ class FL_env():
         good_users = (self.my_groups.num_users_good - 0) / (f.total_users - 0)
         intermediate_users = (self.my_groups.num_users_intermediate - 0) / (f.total_users - 0)
         bad_users = (self.my_groups.num_users_bad - 0) / (f.total_users - 0)
-        num_client_n = (f.num_clients - 1) / (f.total_users - 1)
 
-        observation=[fl_epoch_n, good_users, intermediate_users, bad_users, num_client_n]
+        observation=[fl_epoch_n, good_users, intermediate_users, bad_users]
         observation.extend(good)
         observation.extend(intermediate)
         observation.extend(bad)
