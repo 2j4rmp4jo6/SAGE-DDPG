@@ -188,7 +188,7 @@ class FL_env():
         print("bad_to_bad: ", bad_to_bad)
         print("good_to_bad: ", good_to_bad)
         # reward function
-        reward = good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 2 - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) - bad_to_good * (0.4 / f.attack_ratio) * 2
+        reward = good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 1.5 - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5 - bad_to_good * (0.4 / f.attack_ratio) * 1.5
         # 中止條件
         if round >= 20:
             print('--------------------End FL-------------------------')
