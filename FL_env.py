@@ -188,7 +188,8 @@ class FL_env():
         print("bad_to_bad: ", bad_to_bad)
         print("good_to_bad: ", good_to_bad)
         # reward function
-        reward = good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 1.5 - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5 - bad_to_good * (0.4 / f.attack_ratio) * 1.5
+        # reward = good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 1.5 - good_to_bad * ((1 - 0.4) / (1 - f.attack_ratio)) * 1.5 - bad_to_good * (0.4 / f.attack_ratio) * 1.5
+        reward = good_to_good * ((1 - 0.4) / (1 - f.attack_ratio)) + bad_to_bad * (0.4 / f.attack_ratio) * 1.5
         # 中止條件
         if round >= 20:
             print('--------------------End FL-------------------------')
@@ -241,6 +242,23 @@ class FL_env():
             # print('policy loss: ', agent.policy_loss_record)
 
             # 紀錄 Attacker ratio
+            if good_to_good + good_to_bad > 0:
+                self.normal_ratio_good.append(good_to_good / (good_to_good + good_to_bad))
+                self.normal_ratio_bad.append(good_to_bad / (good_to_good + good_to_bad))
+            else:
+                self.normal_ratio_good.append(0)
+                self.normal_ratio_bad.append(0)
+            if bad_to_good + bad_to_bad > 0:
+                self.attacker_ratio_good.append(bad_to_good / (bad_to_good + bad_to_bad))
+                self.attacker_ratio_bad.append(bad_to_bad / (bad_to_good + bad_to_bad))
+                print('Attacker ratio good: ', bad_to_good / (bad_to_good + bad_to_bad))
+                print('Attacker ratio bad: ', bad_to_bad / (bad_to_good + bad_to_bad))
+            else:
+                self.attacker_ratio_good.append(0)
+                self.attacker_ratio_bad.append(0)
+                print('Attacker ratio good: ', 0)
+                print('Attacker ratio bad: ', 0)
+            '''
             if good_to_good + bad_to_good > 0:
                 self.attacker_ratio_good.append(bad_to_good / (good_to_good + bad_to_good))
                 self.normal_ratio_good.append(good_to_good / (good_to_good + bad_to_good))
@@ -257,6 +275,7 @@ class FL_env():
                 self.attacker_ratio_bad.append(0)
                 self.normal_ratio_bad.append(0)
                 print('Attacker ratio bad: ', 0)
+            '''
 
             path_log_variable = f.model_path + '_log_variable.txt'
             with open(path_log_variable, "wb") as file:
