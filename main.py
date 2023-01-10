@@ -207,7 +207,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--init_w', default=0.003, type=float, help='') 
     parser.add_argument('--train_iter', default=200000, type=int, help='train iters each timestep')
-    parser.add_argument('--epsilon', default=8000, type=int, help='linear decay of exploration policy')
+    parser.add_argument('--epsilon', default=25000, type=int, help='linear decay of exploration policy')
     parser.add_argument('--seed', default=-1, type=int, help='')
     parser.add_argument('--resume', default='default', type=str, help='Resuming model path for testing')
     # parser.add_argument('--l2norm', default=0.01, type=float, help='l2 weight decay') # TODO
